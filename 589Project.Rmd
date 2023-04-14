@@ -24,6 +24,7 @@ head(mydata)
 # Load the sp package
 library(sp)
 library(rgdal)
+library(spatstat)
 
 # Create a spatial points data frame from the longitude and latitude columns
 coordinates <- mydata[,c("decimalLongitude", "decimalLatitude")]
@@ -43,5 +44,21 @@ plot(data_transformed,main = "Locations in BC",
      cex = 0.8,
      col ="blue"
 )
+```
+
+## First moment and Second moment statistics
+
+```{r}
+library(spatstat)
+library(maptools)
+load("BC_Covariates.Rda")
+```
+
+
+```{r}
+#As Window object is already present, use this to plot the observation window
+plot(DATA$Window,
+main = "Observation Window")
+```
 ```
 
