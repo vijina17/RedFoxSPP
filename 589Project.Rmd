@@ -17,7 +17,7 @@ knitr::opts_chunk$set(echo = TRUE)
 mydata <- read.delim("vulpes.csv", sep ="\t")
 
 # view the first few rows of the data frame
-head(mydata)
+#head(mydata)
 ```
 
 
@@ -48,4 +48,51 @@ data.sp_trans
 
 plot(data.sp_trans, main = "Locations in BC", cex = 0.8, col ="blue")
 ```
+```{r}
 
+library(spatstat)
+library(maptools)
+load("BC_Covariates.Rda")
+
+#how to convert to OWIN object of this window so we can use the background?
+#or do we have this window within our data itself?
+#Convert the list to an owin object
+#vulpes_win <- owin(poly = list(x=DATA$Parks$X,y=DATA$Parks$Y))
+
+#Try to visualise the window using x and y
+#plot(vulpes_win,
+#     main = "Observation Window")
+
+#As Window object is already present, use this to plot the observation window
+plot(DATA$Window,
+main = "Observation Window")
+```
+
+
+
+```{r}
+#Convert to a ppp object, how to add Window? how to resolve 517 illegal points? what is it?
+vulpes_ppp <- ppp(x = data.sp_trans$decimalLatitude, # X coordinates
+                    y = data.sp_trans$decimalLongitude)#, # Y coordinates
+                    #window = ves_win) # Observation window
+
+#Visualise the dataset
+plot(vulpes_ppp,
+     pch = 16,
+     cols = "#046C9A",
+     main = "Vulpes point data")
+```
+
+```{r}
+# Analyze first moment and plot intensity - 
+
+```
+
+
+```{r}
+#add marks and relationship with one covariate to start with
+vulpes_ppp <- ppp(x = data.sp_trans$decimalLatitude, # X coordinates
+                    y = data.sp_trans$decimalLongitude)
+
+#.....
+```
