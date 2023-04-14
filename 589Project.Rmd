@@ -69,5 +69,18 @@ load("BC_Covariates.Rda")
 plot(DATA$Window,
 main = "Observation Window")
 ```
+
+
+```{r}
+library(sf)
+lapply(DATA, FUN = class)
+
+parks_ppp <- ppp(x = data.sp_trans@coords[,1], # X coordinates
+                    y = data.sp_trans@coords[,2], # Y coordinates
+                    window = as.owin( DATA[["Window"]]),# Observation window
+                    ) 
+
+plot(parks_ppp)
 ```
+
 
