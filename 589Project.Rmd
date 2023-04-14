@@ -9,6 +9,7 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
 ## R Markdown
 
 ```{r}
@@ -24,41 +25,27 @@ head(mydata)
 # Load the sp package
 library(sp)
 library(rgdal)
-library(spatstat)
+library(sf)
+library(raster)
 
 # Create a spatial points data frame from the longitude and latitude columns
 coordinates <- mydata[,c("decimalLongitude", "decimalLatitude")]
+dat.sp <- SpatialPointsDataFrame(c(mydata[,c('decimalLongitude','decimalLatitude')]), data = mydata)
 
 # Set the current CRS
-proj4string(mydata) <- CRS("+proj=longlat +datum=WGS84")
+#proj4string(mydata) <- CRS("+proj=longlat +datum=WGS84")
+proj4string(dat.sp)<- CRS("+proj=longlat +datum=WGS84")
 
 # Define the new CRS you want to transform to
 new_crs <- CRS("+proj=aea +lat_0=45 +lon_0=-126 +lat_1=50 +lat_2=58.5 +x_0=1000000 +y_0=0 +datum=NAD83 +units=m +no_defs")
 
 # Transform the data to the new CRS
-data_transformed <- spTransform(mydata, new_crs)
+#data_transformed <- spTransform(mydata, new_crs)
+data.sp_trans <- spTransform(dat.sp, new_crs)
 
-data_transformed
+#data_transformed
+data.sp_trans
 
-plot(data_transformed,main = "Locations in BC",
-     cex = 0.8,
-     col ="blue"
-)
-```
-
-## First moment and Second moment statistics
-
-```{r}
-library(spatstat)
-library(maptools)
-load("BC_Covariates.Rda")
-```
-
-
-```{r}
-#As Window object is already present, use this to plot the observation window
-plot(DATA$Window,
-main = "Observation Window")
-```
+plot(data.sp_trans, main = "Locations in BC", cex = 0.8, col ="blue")
 ```
 
