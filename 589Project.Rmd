@@ -111,3 +111,13 @@ points(parks_ppp)
 marks(parks_ppp) <- data.frame(HFI = DATA$HFI, Forest = DATA$Forest)
 ```
 
+```{r}
+# fitting a random model
+fit_test <- ppm(parks_ppp~HFI, data = DATA)
+quadtest_ <- quadrat.test(fit_test, nx =4, ny = 4)
+
+plot(quadtest_)
+
+```
+
+
