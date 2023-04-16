@@ -25,13 +25,17 @@ head(mydata)
 library(sp)
 library(rgdal)
 library(spatstat)
+library(dplyr)
+
+df <- filter(mydata, mydata$stateProvince == "British Columbia")
+
 
 # Create a spatial points data frame from the longitude and latitude columns
-coordinates <- mydata[,c("decimalLongitude", "decimalLatitude")]
-dat.sp <- SpatialPointsDataFrame(c(mydata[,c('decimalLongitude','decimalLatitude')]), data = mydata)
+coordinates <- df[,c("decimalLongitude", "decimalLatitude")]
+dat.sp <- SpatialPointsDataFrame(c(df[,c('decimalLongitude','decimalLatitude')]), data = df)
 
 # Set the current CRS
-#proj4string(mydata) <- CRS("+proj=longlat +datum=WGS84")
+#proj4string(df) <- CRS("+proj=longlat +datum=WGS84")
 
 proj4string(dat.sp)<- CRS("+proj=longlat +datum=WGS84")
 
@@ -40,7 +44,7 @@ proj4string(dat.sp)<- CRS("+proj=longlat +datum=WGS84")
 new_crs <- CRS("+proj=aea +lat_0=45 +lon_0=-126 +lat_1=50 +lat_2=58.5 +x_0=1000000 +y_0=0 +datum=NAD83 +units=m +no_defs")
 
 # Transform the data to the new CRS
-#data_transformed <- spTransform(mydata, new_crs)
+#data_transformed <- spTransform(df, new_crs)
 data.sp_trans <- spTransform(dat.sp, new_crs)
 
 #data_transformed
@@ -83,4 +87,27 @@ parks_ppp <- ppp(x = data.sp_trans@coords[,1], # X coordinates
 plot(parks_ppp)
 ```
 
+```{r}
+# 3D elevation plot
+persp(DATA$Elevation, # source data
+             theta = -20, phi = 40, # rotation
+             expand = 20, # z-axis expansion
+             border = NA, #remove grid borders
+             apron = F, #apron around edge
+             shade = 0.3, # shading
+             box = FALSE, # axes on/off
+             main = "", # title
+             visible = TRUE, #Supporting calculations
+             colmap = viridis(200) ) # colour pallet
+
+
+# plotting HFI with points
+plot(DATA$HFI)
+points(parks_ppp)
+```
+
+```{r}
+# trying to make marks but doesn't work, don't need to do this after all
+marks(parks_ppp) <- data.frame(HFI = DATA$HFI, Forest = DATA$Forest)
+```
 
