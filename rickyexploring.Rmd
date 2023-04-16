@@ -1,0 +1,123 @@
+---
+title: "589Project"
+author: "Nowshaba Durrani"
+date: "2023-04-09"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+# read the CSV file into a data frame
+mydata <- read.delim("vulpes.csv", sep ="\t")
+
+# view the first few rows of the data frame
+head(mydata)
+```
+
+
+```{r}
+# Load the sp package
+library(sp)
+library(rgdal)
+library(spatstat)
+library(dplyr)
+
+df <- filter(mydata, mydata$stateProvince == "British Columbia")
+
+
+# Create a spatial points data frame from the longitude and latitude columns
+coordinates <- df[,c("decimalLongitude", "decimalLatitude")]
+dat.sp <- SpatialPointsDataFrame(c(df[,c('decimalLongitude','decimalLatitude')]), data = df)
+
+# Set the current CRS
+#proj4string(df) <- CRS("+proj=longlat +datum=WGS84")
+
+proj4string(dat.sp)<- CRS("+proj=longlat +datum=WGS84")
+
+
+# Define the new CRS you want to transform to
+new_crs <- CRS("+proj=aea +lat_0=45 +lon_0=-126 +lat_1=50 +lat_2=58.5 +x_0=1000000 +y_0=0 +datum=NAD83 +units=m +no_defs")
+
+# Transform the data to the new CRS
+#data_transformed <- spTransform(df, new_crs)
+data.sp_trans <- spTransform(dat.sp, new_crs)
+
+#data_transformed
+data.sp_trans
+
+
+#plot(data_transformed,main = "Locations in BC",cex = 0.8,col ="blue")
+
+plot(data.sp_trans,main = "Locations in BC",
+     cex = 0.8,
+     col ="blue"
+)
+```
+
+## First moment and Second moment statistics
+
+```{r}
+library(spatstat)
+library(maptools)
+load("BC_Covariates.Rda")
+```
+
+
+```{r}
+#As Window object is already present, use this to plot the observation window
+plot(DATA$Window,
+main = "Observation Window")
+```
+
+
+```{r}
+library(sf)
+lapply(DATA, FUN = class)
+
+parks_ppp <- ppp(x = data.sp_trans@coords[,1], # X coordinates
+                    y = data.sp_trans@coords[,2], # Y coordinates
+                    window = as.owin( DATA[["Window"]]),# Observation window
+                    ) 
+
+plot(parks_ppp)
+```
+
+```{r}
+# 3D elevation plot
+persp(DATA$Elevation, # source data
+             theta = -20, phi = 40, # rotation
+             expand = 20, # z-axis expansion
+             border = NA, #remove grid borders
+             apron = F, #apron around edge
+             shade = 0.3, # shading
+             box = FALSE, # axes on/off
+             main = "", # title
+             visible = TRUE, #Supporting calculations
+             colmap = viridis(200) ) # colour pallet
+
+
+# plotting HFI with points
+plot(DATA$HFI)
+points(parks_ppp)
+```
+
+```{r}
+# trying to make marks but doesn't work, don't need to do this after all
+marks(parks_ppp) <- data.frame(HFI = DATA$HFI, Forest = DATA$Forest)
+```
+
+```{r}
+# fitting a random model
+fit_test <- ppm(parks_ppp~HFI, data = DATA)
+quadtest_ <- quadrat.test(fit_test, nx =4, ny = 4)
+
+plot(quadtest_)
+
+```
+
+
