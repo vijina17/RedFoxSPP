@@ -9,173 +9,80 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
-## R Markdown
+## Libraries
 
 ```{r}
-# read the CSV file into a data frame
-mydata <- read.delim("vulpes.csv", sep ="\t")
-
-# view the first few rows of the data frame
-#head(mydata)
+#install.packages("mapcan")
+#install.packages("bcmaps")
+#install.packages("rgbif")
 ```
 
 
 ```{r}
-# Load the sp package
-library(sp)
-library(rgdal)
+library(rgbif) #allows searching and retrieving data from GBIF
+library(ggplot2) #use ggplot2 to add layer for visualization
+library(sp) #Standardized Support for Spatial Vector Data
 library(sf)
-library(raster)
+library(spatstat)
+library(maptools)
+#library(raster)
+#library(mapcan)
+#library(bcmaps)
+#library(tidyverse)
+#library(rgdal)
+```
+
+```{r}
+#occ_count() # occurance count for all the species in GBIF (Global Biodiversity Information Facility) - rgbif
+
+redFox <- name_backbone(name="Vulpes vulpes")
+redFoxList <- occ_data(taxonKey = redFox$speciesKey, hasCoordinate=TRUE, stateProvince='British Columbia', limit=2000)
+mydata <- redFoxList$data
+```
+
+
+
+```{r}
+
+load("BC_Covariates.Rda")
 
 # Create a spatial points data frame from the longitude and latitude columns
 coordinates <- mydata[,c("decimalLongitude", "decimalLatitude")]
 dat.sp <- SpatialPointsDataFrame(c(mydata[,c('decimalLongitude','decimalLatitude')]), data = mydata)
 
 # Set the current CRS
-#proj4string(mydata) <- CRS("+proj=longlat +datum=WGS84")
 proj4string(dat.sp)<- CRS("+proj=longlat +datum=WGS84")
 
 # Define the new CRS you want to transform to
 new_crs <- CRS("+proj=aea +lat_0=45 +lon_0=-126 +lat_1=50 +lat_2=58.5 +x_0=1000000 +y_0=0 +datum=NAD83 +units=m +no_defs")
 
 # Transform the data to the new CRS
-#data_transformed <- spTransform(mydata, new_crs)
 data.sp_trans <- spTransform(dat.sp, new_crs)
 
 #data_transformed
 data.sp_trans
 
-plot(data.sp_trans, main = "Locations in BC", cex = 0.8, col ="blue")
-```
-```{r}
-
-library(spatstat)
-library(maptools)
-load("BC_Covariates.Rda")
-
-#how to convert to OWIN object of this window so we can use the background?
-#or do we have this window within our data itself?
-#Convert the list to an owin object
-#vulpes_win <- owin(poly = list(x=DATA$Parks$X,y=DATA$Parks$Y))
-
-#Try to visualise the window using x and y
-#plot(vulpes_win,
-#     main = "Observation Window")
-
-#As Window object is already present, use this to plot the observation window
-plot(DATA$Window,
-main = "Observation Window")
-```
-```{r}
-data("bei")
-# Analyze first moment and plot intensity - 
-x = data.sp_trans$decimalLatitude # X coordinates
-y = data.sp_trans$decimalLongitude # Y coordinates
-
-#Visualise the data
-plot(y ~ x,
-     pch = 16,
-     col = "#046C9A",
-     data = data.sp_trans)
-```
-```{r}
-#Convert to a ppp object, how to add Window? how to resolve 517 illegal points? what is it?
-
-vulpes_win <- owin(poly = list(x=x,y=y))
-vulpes_ppp <- ppp(x = data.sp_trans$decimalLatitude, # X coordinates
-                    y = data.sp_trans$decimalLongitude, # Y coordinates
-                    window = vulpes_win) # Observation window
-
-#Visualise the dataset
-plot(vulpes_ppp,
-     pch = 16,
-     cols = "#046C9A",
-     main = "Vulpes point data")
+#plot(data.sp_trans, main = "Locations in BC", cex = 0.8, col ="blue")
 ```
 
-As we can see from the simple plot and the plot of ppp, the data of Vulpes Vulpes observation is not homogeneous.
-The intensity, if homogeneous 
-```{r}
-summary(vulpes_ppp)
-intensity(vulpes_ppp)
-```
-Per the summary, Average intensity 5.063089e-10 points per square unit which is 
-0.0000000005063089 per square unit and this does not explain the observance of Vulpes Vulpes in a meaningful way.
+```{r warning=FALSE}
 
-Quadratcount:
-5 by 5 and 10 by 10 - Both convey different view points on the intensity of the observance.
-According to plot 1, most of the Vulpes Vulpes are spotted in the South West areas around Vancouver.
+library(sf)
+lapply(DATA, FUN = class)
+parks_ppp <- ppp(x = data.sp_trans@coords[,1], # X coordinates
+                    y = data.sp_trans@coords[,2], # Y coordinates
+                    window = as.owin( DATA[["Window"]]),# Observation window
+                    )
 
-The 10X10 figure shows the intensity is high in the coastal areas with higher density in the South West region.
+col_pal <- c("maroon")
+plot(parks_ppp,
+     main = "Red Fox in BC",
+     cex = 0.9,
+     col ="white",
+     border = 3,
+     cols = col_pal,
+     par(bg = "grey90",cex.main = 1.6))
 
-
-```{r}
-#Split into a 5 by 5 quadrat and count points
-Q <- quadratcount(vulpes_ppp,
-                  nx = 5,
-                  ny = 5)
-
-#Plot the output 
-par(mfrow=c(1,2))
-plot(vulpes_ppp,
-     pch = 12,
-     cex = 0.5,
-     cols = "#046C9A",
-     main = "Vulpes Vulpes locations")
-
-plot(Q, cex = 1, col = "red", add = T)
-
-Q <- quadratcount(vulpes_ppp,
-                  nx = 10,
-                  ny = 10)
-
-#Plot the output 
-par(mfrow=c(1,2))
-plot(vulpes_ppp,
-     pch = 12,
-     cex = 0.5,
-     cols = "#046C9A",
-     main = "Beilschmiedia pendula locations")
-
-plot(Q, cex = 1, col = "red", add = T)
-```
-Quadrat counting suggests varying intensity and to confirm that the variation is not due to chance alone, we conduct an objective test for spatial (in)homogeneity. We do a Chi-square test to validate if the deviations are significant.
-
-```{r}
-#Quadrat test of homogeneity 
-quadrat.test(Q)
-```
-The null hypothesis of the test suggests homogeneity in the process and as the p-value is very small, the null hypothesis is rejected and its confirmed there is significant deviation from homogeneity.
-
-Hot spot analysis:
-As the next step, we analyze for any hot spots in the south west coastal areas of BC.
-```{r}
-# Estimate R
-R <- bw.ppl(vulpes_ppp)
-
-#Calculate test statistic
-LR <- scanLRTS(vulpes_ppp, r = R)
-
-#Plot the output 
-plot(LR)
-
-#Compute local p-values
-pvals <- eval.im(pchisq(LR,
-                        df = 1,
-                        lower.tail = FALSE))
-
-
-#Plot the output
-plot(pvals, main = "Local p-values")
 ```
 
-Question: Do we need p -value intensity analysis? Also, is it possible to add the window for better observation window boundary (shape of BC)?
 
-```{r}
-#add marks and relationship with one covariate to start with
-vulpes_ppp <- ppp(x = data.sp_trans$decimalLatitude, # X coordinates
-                    y = data.sp_trans$decimalLongitude)
-
-#.....
-```
