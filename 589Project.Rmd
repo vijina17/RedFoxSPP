@@ -6,7 +6,7 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,fig.width=5, fig.height=4)
+knitr::opts_chunk$set(echo = TRUE,fig.width=8, fig.height=6)
 ```
 
 ## Libraries
@@ -85,6 +85,92 @@ plot(parks_ppp,
 
 ```
 
+## First Moment Analysis
+
+
+```{r}
+#summary(parks_ppp)
+intensity(parks_ppp)
+```
+Per the summary, Average intensity 5.063089e-10 points per square unit which is 
+0.0000000005063089 per square unit and this does not explain the observance of Vulpes Vulpes in a meaningful way.
+
+Quadratcount:
+5 by 5 and 10 by 10 - Both convey different view points on the intensity of the observance.
+According to plot 1, most of the Vulpes Vulpes are spotted in the South West areas around Vancouver.
+
+The 10X10 figure shows the intensity is high in the coastal areas with higher density in the South West region.
+
+
+```{r}
+#Split into a 5 by 5 quadrat and count points
+Q <- quadratcount(parks_ppp,
+                  nx = 5,
+                  ny = 5)
+
+#Plot the output 
+par(mfrow=c(1,2))
+plot(parks_ppp,
+     pch = 12,
+     cex = 0.5,
+     cols = "#046C9A",
+     main = "Vulpes Vulpes locations")
+
+plot(Q, cex = 1, col = "red", add = T)
+
+Q <- quadratcount(parks_ppp,
+                  nx = 10,
+                  ny = 10)
+
+#Plot the output 
+par(mfrow=c(1,2))
+plot(parks_ppp,
+     pch = 12,
+     cex = 0.5,
+     cols = "#046C9A",
+     main = "Beilschmiedia pendula locations")
+
+plot(Q, cex = 1, col = "red", add = T)
+```
+Quadrat counting suggests varying intensity and to confirm that the variation is not due to chance alone, we conduct an objective test for spatial (in)homogeneity. We do a Chi-square test to validate if the deviations are significant.
+
+```{r}
+#Quadrat test of homogeneity 
+quadrat.test(Q)
+```
+The null hypothesis of the test suggests homogeneity in the process and as the p-value is very small, the null hypothesis is rejected and its confirmed there is significant deviation from homogeneity.
+
+Hot spot analysis:
+As the next step, we analyze for any hot spots in the south west coastal areas of BC.
+```{r}
+# Estimate R
+R <- bw.ppl(parks_ppp)
+
+#Calculate test statistic
+LR <- scanLRTS(parks_ppp, r = R)
+
+#Plot the output 
+plot(LR)
+
+#Compute local p-values
+pvals <- eval.im(pchisq(LR,
+                        df = 1,
+                        lower.tail = FALSE))
+
+
+#Plot the output
+plot(pvals, main = "Local p-values")
+```
+
+Question: Do we need p -value intensity analysis? Also, is it possible to add the window for better observation window boundary (shape of BC)?
+
+```{r, eval=FALSE}
+#add marks and relationship with one covariate to start with
+parks_ppp <- ppp(x = data.sp_trans$decimalLatitude, # X coordinates
+                    y = data.sp_trans$decimalLongitude)
+
+#.....
+```
 
 ## Covariates Analysis
 Our data includes 4 covariates we can explore: the elevation, the forest cover, the human footprint inventory (HFI), and the distance to water. Given our research questions, we will start with investigating the HFI and the forest cover.
@@ -120,7 +206,10 @@ plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
 
 Conclusion: maybe need to segment the continuous values of covariates so that it is easier to see trend, like histogram in lab 1.
 
+# 2nd Moment Analysis
+
 ## Morisita's Index plot
+this produces an error, and we don't need to include it
 ```{r, eval=F}
 miplot(parks_ppp,
        main = "",
