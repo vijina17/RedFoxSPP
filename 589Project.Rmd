@@ -6,7 +6,7 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE,fig.width=8, fig.height=6)
 ```
 
 ## Libraries
@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-```{r}
+```{r message=FALSE}
 library(rgbif) #allows searching and retrieving data from GBIF
 library(ggplot2) #use ggplot2 to add layer for visualization
 library(sp) #Standardized Support for Spatial Vector Data
@@ -60,7 +60,7 @@ new_crs <- CRS("+proj=aea +lat_0=45 +lon_0=-126 +lat_1=50 +lat_2=58.5 +x_0=10000
 data.sp_trans <- spTransform(dat.sp, new_crs)
 
 #data_transformed
-data.sp_trans
+#data.sp_trans
 
 #plot(data.sp_trans, main = "Locations in BC", cex = 0.8, col ="blue")
 ```
@@ -85,4 +85,35 @@ plot(parks_ppp,
 
 ```
 
+
+## Covariates Analysis
+Our data includes 4 covariates we can explore: the elevation, the forest cover, the human footprint inventory (HFI), and the distance to water. Given our research questions, we will start with investigating the HFI and the forest cover.
+
+### HFI
+```{r warning=F}
+plot(DATA$HFI, box = F, par(cex.main = 2), main = "HFI")
+plot(parks_ppp, pch = 16, cex = 2, col = "green",use.marks = F, add = T)
+```
+From this plot, it is hard to tell if there is a possible relationship between a red fox occurence and the HFI.
+
+### Forest Cover
+```{r warning=F}
+plot(DATA$Forest, box = F, par(cex.main = 2), main = "Forest")
+plot(parks_ppp, pch = 16, cex = 2, col = "green",use.marks = F, add = T)
+```
+
+It is also very hard to see if there is a relationship, this time because there are a lot of high values for forest cover all over the province.
+
+### Distance to water
+```{r warning=F}
+plot(DATA$Dist_Water, box = F, par(cex.main = 2), main = "Distance to water")
+plot(parks_ppp, pch = 16, cex = 2, col = "green",use.marks = F, add = T)
+```
+
+
+### Elevation
+```{r warning=F}
+plot(DATA$Elevation, box = F, par(cex.main = 2), main = "Elevation")
+plot(parks_ppp, pch = 16, cex = 2, col = "green",use.marks = F, add = T)
+```
 
