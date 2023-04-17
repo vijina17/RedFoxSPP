@@ -6,7 +6,7 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE,fig.width=5, fig.height=4)
 ```
 
 ## Libraries
@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-```{r}
+```{r message=FALSE}
 library(rgbif) #allows searching and retrieving data from GBIF
 library(ggplot2) #use ggplot2 to add layer for visualization
 library(sp) #Standardized Support for Spatial Vector Data
@@ -60,7 +60,7 @@ new_crs <- CRS("+proj=aea +lat_0=45 +lon_0=-126 +lat_1=50 +lat_2=58.5 +x_0=10000
 data.sp_trans <- spTransform(dat.sp, new_crs)
 
 #data_transformed
-data.sp_trans
+#data.sp_trans
 
 #plot(data.sp_trans, main = "Locations in BC", cex = 0.8, col ="blue")
 ```
@@ -85,4 +85,105 @@ plot(parks_ppp,
 
 ```
 
+
+## Covariates Analysis
+Our data includes 4 covariates we can explore: the elevation, the forest cover, the human footprint inventory (HFI), and the distance to water. Given our research questions, we will start with investigating the HFI and the forest cover.
+
+### HFI
+```{r warning=F}
+plot(DATA$HFI, box = F, par(cex.main = 2), main = "HFI")
+plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
+```
+From this plot, it is hard to tell if there is a possible relationship between a red fox occurence and the HFI.
+
+### Forest Cover
+```{r warning=F}
+plot(DATA$Forest, box = F, par(cex.main = 2), main = "Forest")
+plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
+```
+
+It is also very hard to see if there is a relationship, this time because there are a lot of high values for forest cover all over the province.
+
+### Distance to water
+```{r warning=F}
+plot(DATA$Dist_Water, box = F, par(cex.main = 2), main = "Distance to water")
+plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
+```
+
+
+### Elevation
+```{r warning=F}
+plot(DATA$Elevation, box = F, par(cex.main = 2), main = "Elevation")
+plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
+```
+
+
+Conclusion: maybe need to segment the continuous values of covariates so that it is easier to see trend, like histogram in lab 1.
+
+## Morisita's Index plot
+```{r, eval=F}
+miplot(parks_ppp,
+       main = "",
+       pch = 16,
+       col = "maroon")
+```
+
+## Ripley's K function
+Ripley's K-function provides information on whether there are significant deviations from independence between points.
+
+```{r}
+k_fox <- Kest(parks_ppp)
+plot(k_fox, lwd=2)
+```
+The blue line is the theoretical line. (I don't know what the other lines mean)
+
+Adding confidence interval at a significance level of 0.05:
+```{r}
+E_fox_homo <- envelope(parks_ppp,
+                  Kest,
+                  correction="border",
+                  rank = 1,
+                  nsim = 19, # aka alpha of 0.05
+                  fix.n = T)
+plot(E_fox_homo, lwd = 2)
+```
+(I don't know why it only plotted these lines and not the other ones) 
+We see that the effect appears significant. It is suspicious that the confidence bands increase a lot, (what's the explanation for that?)
+
+However, we know from first moment analysis that the intensity does not seem homogenous (right? Might need to double check). Trying inhomogenous: 
+```{r}
+E_fox <- envelope(parks_ppp,
+                  Kinhom,
+                  correction="border",
+                  rank = 1,
+                  nsim = 19, # aka alpha of 0.05
+                  fix.n = T)
+plot(E_fox, lwd = 2)
+```
+
+Using the Kinhom function ensures that we are not assuming the intensity is homogenous. It seems like from the smaller numbers, ie smaller distances between points, there is 'evidence' of clustering, whereas there are funny things going on as distances increase.  The deviations are still meaninful in the 'smaller' distances, suggesting that the relationship between points may be due to effects between points rather than relationship with covariates. 
+
+### Pair correlation function
+```{r}
+# Estimate the g function
+pcf_fox <- pcfinhom(parks_ppp) # assumes inhomogeneity
+
+# Default plot method
+plot(pcf_fox, lwd = 2)
+
+# visualise the results
+plot(pcf_fox,
+     theo ~ r,
+     ylim = c(0,20),
+     main = "",
+     col = "grey70",
+     lwd = 2,
+     lty = "dashed")
+plot(pcf_fox,
+     iso ~ r,
+     col = c("#046C9A"),
+     lwd = 2,
+     add = T)
+```
+We observe that there seem to be evidence for clustering at smaller than 50 000, but after that it rides the y = 1 line slightly under. 
 
