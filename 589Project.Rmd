@@ -1,6 +1,6 @@
 ---
 title: "589Project"
-author: "Nowshaba Durrani"
+author: "Nowshaba Durrani, Ricky Heinrich, Viji Rajagopalan"
 date: "2023-04-09"
 output: pdf_document
 ---
@@ -38,9 +38,13 @@ library(maptools)
 redFox <- name_backbone(name="Vulpes vulpes")
 redFoxList <- occ_data(taxonKey = redFox$speciesKey, hasCoordinate=TRUE, stateProvince='British Columbia', limit=2000)
 mydata <- redFoxList$data
+n_row <- nrow(redFoxList$data)
+n_col <- ncol(redFoxList$data)
+#n_row
+#n_col
 ```
 
-
+For our Data 589 project, we have selected Red Fox (Scientific Name - Vulpes Vulpes) to do the analysis. In the GBIF database they have approximately, 610,958+ georeferences records for this species around the world, however for this project we have selected to do the analysis of the occurance of Red Fox in BC only. So with the above function we have fetched the information for British Columbia only in `r n_col` columns and `r n_row` number of entries.
 
 ```{r}
 
@@ -54,7 +58,8 @@ dat.sp <- SpatialPointsDataFrame(c(mydata[,c('decimalLongitude','decimalLatitude
 proj4string(dat.sp)<- CRS("+proj=longlat +datum=WGS84")
 
 # Define the new CRS you want to transform to
-new_crs <- CRS("+proj=aea +lat_0=45 +lon_0=-126 +lat_1=50 +lat_2=58.5 +x_0=1000000 +y_0=0 +datum=NAD83 +units=m +no_defs")
+new_crs <- CRS("+proj=aea +lat_0=45 +lon_0=-126 +lat_1=50 +lat_2=58.5 +x_0=1000000 
+               +y_0=0 +datum=NAD83 +units=m +no_defs")
 
 # Transform the data to the new CRS
 data.sp_trans <- spTransform(dat.sp, new_crs)
@@ -84,6 +89,8 @@ plot(parks_ppp,
      par(bg = "grey90",cex.main = 1.6))
 
 ```
+
+Here we have plotted all the occurrences of Red Fox in the BC region and we can see that the species are scattered in the region specially in the upper and middle part of the province. Now we will be exploring what is contributing to the occurrences of the species in the specific places based on various factors like elevation, close to water bodies, forests, human habitats, etc. 
 
 ## First Moment Analysis
 
