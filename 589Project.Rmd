@@ -34,6 +34,8 @@ library(maptools)
 #library(rgdal)
 ```
 
+# Introduction:
+
 ```{r}
 #occ_count() # occurance count for all the species in GBIF (Global Biodiversity Information Facility) - rgbif
 
@@ -92,7 +94,13 @@ plot(parks_ppp,
 
 ```
 
-Here we have plotted all the occurrences of Red Fox in the BC region and we can see that the species are scattered in the region specially in the upper and middle part of the province. Now we will be exploring what is contributing to the occurrences of the species in the specific places based on various factors like elevation, close to water bodies, forests, human habitats, etc. 
+Here we have plotted all the occurrences of Red Fox in the BC region and we can see that the species are scattered in the region specially in the upper and middle part of the province. Now we will be exploring what is contributing to the occurrences of the species in the specific places based on various factors like elevation, close to water bodies, forests, human habitats, etc.
+
+# Methods:
+
+Briefly describe the data and what variables are included. Provide a detailed description of the analytical workflow that was applied to the data, citing any relevant literature and statistical packages employed. There should be enough information that anyone can reproduce the workflow if they had access to the data. Length: As long as necessary.
+
+
 
 ## First Moment Analysis
 
@@ -215,9 +223,9 @@ plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
 
 Conclusion: maybe need to segment the continuous values of covariates so that it is easier to see trend, like histogram in lab 1.
 
-# 2nd Moment Analysis
+## 2nd Moment Analysis
 
-## Morisita's Index plot
+### Morisita's Index plot
 this produces an error, and we don't need to include it
 ```{r, eval=F}
 miplot(parks_ppp,
@@ -226,7 +234,7 @@ miplot(parks_ppp,
        col = "maroon")
 ```
 
-## Ripley's K function
+### Ripley's K function
 Ripley's K-function provides information on whether there are significant deviations from independence between points.
 
 ```{r}
@@ -285,3 +293,125 @@ plot(pcf_fox,
 ```
 We observe that there seem to be evidence for clustering at smaller than 50 000, but after that it rides the y = 1 line slightly under. 
 
+
+We need to validate clustering effects after modeling the data with covariates.
+
+## Relationship with Covariates 
+
+### Forest Cover
+
+```{r warning=F}
+plot(DATA$Forest, box = F, par(cex.main = 2), main = "Forest")
+plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
+```
+
+### 1. To add : Add other covariates together - side by side
+
+```{r}
+#load the spatstat package
+library(spatstat)
+
+
+#Estimate Rho for Forest Cover
+rho_elev <- rhohat(parks_ppp, DATA$Forest)
+
+#Estimate Rho
+#rho_grad <- rhohat(bei, bei.extra$grad)
+
+#par(mfrow = c(1,2))
+plot(rho_elev,
+     main = "",
+     xlab = "Forest cover")
+#plot(rho_grad,
+#     main = "",
+#     xlab = "Gradient (degrees)")
+```
+
+There seems to be non-linear relationship between forest cover and number of red lions observed. The observance increase with increase in forest cover at intermediate coverage and then it decreases.
+
+Next is to observe if there is any correlation between the covariates (collinearity in the covariates dataset). This is necessary to avoid any identifiability issues in modeling the data.
+
+### 2. Fix issues with collinearity
+```{r}
+#Check for collinearity
+x <- DATA$HFI
+y <- DATA$Forest
+#Y<- solapply(x,y,scaletointerval.im)
+#im.apply(Y, cor.im,na.rm=TRUE,fun.handles.na=TRUE, check=TRUE)
+
+#FUNC <- function(x,y){
+#  cor.im(x,y)
+#}
+
+#class(y)
+
+```
+
+```{r}
+#plot(DATA$HFI$v ~ DATA$Forest$v,
+#     xlab = "HFI",
+#     ylab = "Forest",
+#     pch = 16,
+#     cex = 0.3,
+#     col = "#046C9A")
+```
+
+
+### 3. Finalize and summarize about other two variables - elevation and water.
+
+## Model Fitting
+Try different models - linear and quadratic, do necessary anova and other tests for model selection and validation
+
+### Model with Forest
+```{r}
+#Fit the PPP model
+fit <- ppm(parks_ppp ~ Forest + I(Forest^2),data=DATA)
+
+fit
+```
+All variables look significant.
+
+```{r}
+#Plot the model predictions
+plot(fit,
+     se = FALSE,
+     superimpose = FALSE)
+
+#Overlay the red fox locations
+plot(parks_ppp,
+     pch = 16,
+     cex = 0.6,
+     cols = "white",
+     add = TRUE)
+plot(parks_ppp,
+     pch = 16,
+     cex = 0.5,
+     cols = "black",
+     add = TRUE)
+```
+Does not look like a good fit for all points and also not easy to interpret.
+
+```{r}
+
+```
+
+
+### Analyze - linear+quad, AIC
+
+### Validate if we need GAM - 5. linear vs gam - table: evaluate, AIC, visualize
+
+# Results: Length: Describe your statistical findings. Tables and figures should be used throughout. Length: As long as necessary.
+
+## Findings from EDA
+
+## model: Tablulate observations -4. table to summarize models - linear+quad, AIC
+
+## model: GAM - Table if necessary
+
+
+# Discussion: Provide a brief summary of your findings. Length: ca. 1 page.
+
+# References: Include references to all necessary literature.
+
+1. Data: GBIF.org (09 April 2023) GBIF Occurrence Download  https://doi.org/10.15468/dl.p6tsaa
+2. Research topics: https://cwf-fcf.org/en/resources/encyclopedias/fauna/mammals/red-fox.html
