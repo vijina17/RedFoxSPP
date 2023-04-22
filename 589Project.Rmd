@@ -329,11 +329,11 @@ If we plot the log of the rho, we get a line that could be reasonably interprete
 ### simple model
 ```{r, warning=F}
 fitHFI <- ppm(parks_ppp ~ HFI,data=DATA)
-summary(fitHFI)
+fitHFI
 ```
 ```{r}
 fitHFIexp <- ppm(parks_ppp~HFI + exp(HFI), data=DATA)
-summary(fitHFIexp)
+fitHFIexp
 ```
 ```{r}
 AIC(fitHFI); AIC(fitHFIexp)
