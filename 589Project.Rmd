@@ -298,6 +298,52 @@ We need to validate clustering effects after modeling the data with covariates.
 
 ## Relationship with Covariates 
 
+### HFI
+```{r, warning=F}
+plot(DATA$HFI, box = F, par(cex.main = 2), main = "Forest")
+plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
+```
+```{r}
+rho_HFI <- rhohat(parks_ppp, DATA$HFI)
+
+
+par(mfrow = c(1,2))
+plot(rho_HFI,
+     main = "",
+     xlab = "HFI")
+plot(rho_HFI,
+     main = "",
+     xlab = "HFI", xlim = c(0,0.4))
+```
+
+
+
+In the first figure, we could be fooled into thinking that there is no relationship up to around HFI = 0.4, until which it seems like an exponentional relationship. However, zooming in from HFI 0 to 0.4, we see that the confidence bands don't intersect at all with the red line, which is the expected value given no relationship. This relationship appears non-linear and possibly exponential, where the greatest intensity of observed red foxes occurs at high HFIs. This relationship was expected, as our dataset is not exhaustive but rather is crowdsourced, and naturally foxes are more likely to be noticed by humans in spaces with higher HFIs.
+
+```{r}
+plot(log(rho_HFI$rho))
+```
+
+If we plot the log of the rho, we get a line that could be reasonably interpreted as linear. 
+
+### simple model
+```{r, warning=F}
+fitHFI <- ppm(parks_ppp ~ HFI,data=DATA)
+summary(fitHFI)
+```
+```{r}
+fitHFIexp <- ppm(parks_ppp~HFI + exp(HFI), data=DATA)
+summary(fitHFIexp)
+```
+```{r}
+AIC(fitHFI); AIC(fitHFIexp)
+```
+
+```{r}
+plot(fitHFIexp, se = F, superimpose = F)
+```
+
+
 ### Forest Cover
 
 ```{r warning=F}
