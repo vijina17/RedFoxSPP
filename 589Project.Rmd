@@ -225,12 +225,18 @@ plot(E_fox, lwd = 2, main = "")
 
 
 ### Pair correlation function
-```{r}
+
+[Explanation why we use pair correlation function]
+We observe that there seem to be evidence for clustering at smaller than 50 000, but after that it rides the y = 1 line slightly under. 
+
+We need to validate clustering effects after modeling the data with covariates.
+
+```{r fig.cap="Pair correlation function assuming inhomogeneity"}
 # Estimate the g function
 pcf_fox <- pcfinhom(parks_ppp) # assumes inhomogeneity
 
 # Default plot method
-plot(pcf_fox, lwd = 2)
+#plot(pcf_fox, lwd = 2)
 
 # visualise the results
 plot(pcf_fox,
@@ -246,10 +252,7 @@ plot(pcf_fox,
      lwd = 2,
      add = T)
 ```
-We observe that there seem to be evidence for clustering at smaller than 50 000, but after that it rides the y = 1 line slightly under. 
 
-
-We need to validate clustering effects after modeling the data with covariates.
 
 ## Relationship with Covariates 
 Our data includes 4 covariates we can explore: the elevation, the forest cover, the human footprint inventory (HFI), and the distance to water. Given our research questions, we will start with investigating the HFI and the forest cover.
