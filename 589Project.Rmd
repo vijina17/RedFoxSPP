@@ -8,19 +8,11 @@ output: pdf_document
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,fig.width=8, fig.height=6)
-```
-
-## Libraries
-
-```{r}
-#install.packages("mapcan")
-#install.packages("bcmaps")
-#install.packages("rgbif")
+knitr::opts_chunk$set(echo = F,fig.width=8, fig.height=6, warning = F)
 ```
 
 
-```{r message=FALSE}
+```{r message=FALSE, include=F}
 library(rgbif) #allows searching and retrieving data from GBIF
 library(ggplot2) #use ggplot2 to add layer for visualization
 library(sp) #Standardized Support for Spatial Vector Data
@@ -34,7 +26,7 @@ library(maptools)
 #library(rgdal)
 ```
 
-# Introduction:
+# Introduction
 
 ```{r}
 #occ_count() # occurance count for all the species in GBIF (Global Biodiversity Information Facility) - rgbif
@@ -74,10 +66,7 @@ data.sp_trans <- spTransform(dat.sp, new_crs)
 #plot(data.sp_trans, main = "Locations in BC", cex = 0.8, col ="blue")
 ```
 
-```{r warning=FALSE}
-
-library(sf)
-lapply(DATA, FUN = class)
+```{r warning=FALSE, fig.cap = "Occurence of Red Foxes inBC"}
 parks_ppp <- ppp(x = data.sp_trans@coords[,1], # X coordinates
                     y = data.sp_trans@coords[,2], # Y coordinates
                     window = as.owin( DATA[["Window"]]),# Observation window
@@ -189,50 +178,8 @@ parks_ppp <- ppp(x = data.sp_trans$decimalLatitude, # X coordinates
 #.....
 ```
 
-## Covariates Analysis
-Our data includes 4 covariates we can explore: the elevation, the forest cover, the human footprint inventory (HFI), and the distance to water. Given our research questions, we will start with investigating the HFI and the forest cover.
-
-### HFI
-```{r warning=F}
-plot(DATA$HFI, box = F, par(cex.main = 2), main = "HFI")
-plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
-```
-From this plot, it is hard to tell if there is a possible relationship between a red fox occurence and the HFI.
-
-### Forest Cover
-```{r warning=F}
-plot(DATA$Forest, box = F, par(cex.main = 2), main = "Forest")
-plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
-```
-
-It is also very hard to see if there is a relationship, this time because there are a lot of high values for forest cover all over the province.
-
-### Distance to water
-```{r warning=F}
-plot(DATA$Dist_Water, box = F, par(cex.main = 2), main = "Distance to water")
-plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
-```
-
-
-### Elevation
-```{r warning=F}
-plot(DATA$Elevation, box = F, par(cex.main = 2), main = "Elevation")
-plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
-```
-
-
-Conclusion: maybe need to segment the continuous values of covariates so that it is easier to see trend, like histogram in lab 1.
 
 ## 2nd Moment Analysis
-
-### Morisita's Index plot
-this produces an error, and we don't need to include it
-```{r, eval=F}
-miplot(parks_ppp,
-       main = "",
-       pch = 16,
-       col = "maroon")
-```
 
 ### Ripley's K function
 Ripley's K-function provides information on whether there are significant deviations from independence between points.
@@ -297,6 +244,7 @@ We observe that there seem to be evidence for clustering at smaller than 50 000,
 We need to validate clustering effects after modeling the data with covariates.
 
 ## Relationship with Covariates 
+Our data includes 4 covariates we can explore: the elevation, the forest cover, the human footprint inventory (HFI), and the distance to water. Given our research questions, we will start with investigating the HFI and the forest cover.
 
 ### HFI
 ```{r, warning=F}
