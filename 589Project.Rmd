@@ -303,6 +303,7 @@ We need to validate clustering effects after modeling the data with covariates.
 plot(DATA$HFI, box = F, par(cex.main = 2), main = "Forest")
 plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
 ```
+
 ```{r}
 rho_HFI <- rhohat(parks_ppp, DATA$HFI)
 
@@ -377,6 +378,20 @@ There seems to be non-linear relationship between forest cover and number of red
 
 Next is to observe if there is any correlation between the covariates (collinearity in the covariates dataset). This is necessary to avoid any identifiability issues in modeling the data.
 
+### Elevation
+
+```{r}
+
+```
+
+### Distance to Water
+
+```{r}
+
+```
+
+
+
 ### 2. Fix issues with collinearity
 ```{r}
 #Check for collinearity
@@ -392,6 +407,7 @@ y <- DATA$Forest
 #class(y)
 
 ```
+
 
 ```{r}
 #plot(DATA$HFI$v ~ DATA$Forest$v,
