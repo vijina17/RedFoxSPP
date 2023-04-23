@@ -8,7 +8,7 @@ output: pdf_document
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = F,fig.width=8, fig.height=6, warning = F)
+knitr::opts_chunk$set(echo = F,fig.width=8, fig.height=6, warning = F, cache = T)
 ```
 
 
@@ -40,7 +40,7 @@ n_col <- ncol(redFoxList$data)
 #n_col
 ```
 
-For our Data 589 project, we have selected Red Fox (Scientific Name - Vulpes Vulpes) to do the analysis. In the GBIF database they have approximately, 610,958+ georeferences records for this species around the world, however for this project we have selected to do the analysis of the occurance of Red Fox in BC only. So with the above function we have fetched the information for British Columbia only in `r n_col` columns and `r n_row` number of entries.
+
 
 ```{r}
 
@@ -66,7 +66,9 @@ data.sp_trans <- spTransform(dat.sp, new_crs)
 #plot(data.sp_trans, main = "Locations in BC", cex = 0.8, col ="blue")
 ```
 
-```{r warning=FALSE, fig.cap = "Occurence of Red Foxes inBC"}
+For our Data 589 project, we have selected Red Fox (Scientific Name - Vulpes Vulpes) to do the analysis. In the GBIF database they have approximately, 610,958+ georeferences records for this species around the world, however for this project we have selected to do the analysis of the occurance of Red Fox in BC only. So with the above function we have fetched the information for British Columbia only in `r n_col` columns and `r n_row` number of entries.
+
+```{r warning=FALSE, fig.cap = "Occurence of Red Foxes in BC"}
 parks_ppp <- ppp(x = data.sp_trans@coords[,1], # X coordinates
                     y = data.sp_trans@coords[,2], # Y coordinates
                     window = as.owin( DATA[["Window"]]),# Observation window
@@ -74,7 +76,7 @@ parks_ppp <- ppp(x = data.sp_trans@coords[,1], # X coordinates
 
 col_pal <- c("maroon")
 plot(parks_ppp,
-     main = "Red Fox in BC",
+     main = "",
      cex = 0.9,
      col ="white",
      border = 3,
@@ -89,11 +91,20 @@ Here we have plotted all the occurrences of Red Fox in the BC region and we can 
 
 Briefly describe the data and what variables are included. Provide a detailed description of the analytical workflow that was applied to the data, citing any relevant literature and statistical packages employed. There should be enough information that anyone can reproduce the workflow if they had access to the data. Length: As long as necessary.
 
+The data comes from the Global Biodiversity Information Facility (GBIF) databases. We used the package `rgbif` to access the 'Vulpes Vulpes' data from R directly, sorting by instances occuring in BC. We've extracted the longitude and latitude data from this, and converted it appropriately using the `sp` package. 
+
+Our second source of data contained the BC Window object, as well as possible covariate data: elevation, forest cover, Human Footprint Index (HFI) and distance to water.
+
+We used the package `spatstat` to build a `ppp` object with the converted coordinates of the Red Fox locations from the GBIF data and the window from our second data source. 
+
+To conduct first moment analysis, we used functions from the aforementioned `spatstat` package. We did a quadrat test as well as hotspot analysis to gain insight into the homogeneity assumption of the point process.
+
+For second moment analysis, we looked into Ripley's K-function and pair correlation function using functions from `spatstat`. This provides us with insight into possible clustering tendencies of the point process.
+
+Next we looked into the relationship with covariates.
 
 
 ## First Moment Analysis
-
-
 ```{r}
 #summary(parks_ppp)
 intensity(parks_ppp)
@@ -101,43 +112,38 @@ intensity(parks_ppp)
 Per the summary, Average intensity 5.063089e-10 points per square unit which is 
 0.0000000005063089 per square unit and this does not explain the observance of Vulpes Vulpes in a meaningful way.
 
-Quadratcount:
+### Quadratcount:
 5 by 5 and 10 by 10 - Both convey different view points on the intensity of the observance.
 According to plot 1, most of the Vulpes Vulpes are spotted in the South West areas around Vancouver.
 
 The 10X10 figure shows the intensity is high in the coastal areas with higher density in the South West region.
 
 
-```{r}
+```{r, fig.cap = "Quadrat counts of Red Fox occurences, left 5x5, right 10x10"}
 #Split into a 5 by 5 quadrat and count points
-Q <- quadratcount(parks_ppp,
+Q5 <- quadratcount(parks_ppp,
                   nx = 5,
                   ny = 5)
 
-#Plot the output 
-par(mfrow=c(1,2))
-plot(parks_ppp,
-     pch = 12,
-     cex = 0.5,
-     cols = "#046C9A",
-     main = "Vulpes Vulpes locations")
-
-plot(Q, cex = 1, col = "red", add = T)
-
-Q <- quadratcount(parks_ppp,
+Q10 <- quadratcount(parks_ppp,
                   nx = 10,
                   ny = 10)
-
 #Plot the output 
 par(mfrow=c(1,2))
 plot(parks_ppp,
      pch = 12,
      cex = 0.5,
      cols = "#046C9A",
-     main = "Beilschmiedia pendula locations")
-
-plot(Q, cex = 1, col = "red", add = T)
+     main = "")
+plot(Q5, cex = 1, col = "red", add = T)
+plot(parks_ppp,
+     pch = 12,
+     cex = 0.5,
+     cols = "#046C9A",
+     main = "")
+plot(Q10, cex = 1, col = "red", add = T)
 ```
+
 Quadrat counting suggests varying intensity and to confirm that the variation is not due to chance alone, we conduct an objective test for spatial (in)homogeneity. We do a Chi-square test to validate if the deviations are significant.
 
 ```{r}
@@ -146,8 +152,10 @@ quadrat.test(Q)
 ```
 The null hypothesis of the test suggests homogeneity in the process and as the p-value is very small, the null hypothesis is rejected and its confirmed there is significant deviation from homogeneity.
 
-Hot spot analysis:
+### Hot spot analysis:
+
 As the next step, we analyze for any hot spots in the south west coastal areas of BC.
+
 ```{r}
 # Estimate R
 R <- bw.ppl(parks_ppp)
@@ -157,6 +165,7 @@ LR <- scanLRTS(parks_ppp, r = R)
 
 #Plot the output 
 plot(LR)
+plot(parks_ppp[["window"]], add = T)
 
 #Compute local p-values
 pvals <- eval.im(pchisq(LR,
@@ -166,6 +175,7 @@ pvals <- eval.im(pchisq(LR,
 
 #Plot the output
 plot(pvals, main = "Local p-values")
+plot(parks_ppp[["window"]], add = T)
 ```
 
 Question: Do we need p -value intensity analysis? Also, is it possible to add the window for better observation window boundary (shape of BC)?
