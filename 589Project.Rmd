@@ -8,19 +8,11 @@ output: pdf_document
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-## Libraries
-
-```{r}
-#install.packages("mapcan")
-#install.packages("bcmaps")
-#install.packages("rgbif")
+knitr::opts_chunk$set(echo = F,fig.width=8, fig.height=6, warning = F, cache = T, message = F)
 ```
 
 
-```{r message=FALSE}
+```{r message=FALSE, include=F}
 library(rgbif) #allows searching and retrieving data from GBIF
 library(ggplot2) #use ggplot2 to add layer for visualization
 library(sp) #Standardized Support for Spatial Vector Data
@@ -34,7 +26,7 @@ library(maptools)
 #library(rgdal)
 ```
 
-# Introduction:
+# Introduction
 
 ```{r}
 #occ_count() # occurance count for all the species in GBIF (Global Biodiversity Information Facility) - rgbif
@@ -48,7 +40,7 @@ n_col <- ncol(redFoxList$data)
 #n_col
 ```
 
-For our Data 589 project, we have selected Red Fox (Scientific Name - Vulpes Vulpes) to do the analysis. In the GBIF database they have approximately, 610,958+ georeferences records for this species around the world, however for this project we have selected to do the analysis of the occurance of Red Fox in BC only. So with the above function we have fetched the information for British Columbia only in `r n_col` columns and `r n_row` number of entries.
+
 
 ```{r}
 
@@ -74,10 +66,9 @@ data.sp_trans <- spTransform(dat.sp, new_crs)
 #plot(data.sp_trans, main = "Locations in BC", cex = 0.8, col ="blue")
 ```
 
-```{r warning=FALSE}
+For our Data 589 project, we have selected Red Fox (Scientific Name - Vulpes Vulpes) to do the analysis. In the GBIF database they have approximately, 610,958+ georeferences records for this species around the world, however for this project we have selected to do the analysis of the occurance of Red Fox in BC only. So with the above function we have fetched the information for British Columbia only in `r n_col` columns and `r n_row` number of entries.
 
-library(sf)
-lapply(DATA, FUN = class)
+```{r warning=FALSE, fig.cap = "Occurence of Red Foxes in BC"}
 parks_ppp <- ppp(x = data.sp_trans@coords[,1], # X coordinates
                     y = data.sp_trans@coords[,2], # Y coordinates
                     window = as.owin( DATA[["Window"]]),# Observation window
@@ -85,7 +76,7 @@ parks_ppp <- ppp(x = data.sp_trans@coords[,1], # X coordinates
 
 col_pal <- c("maroon")
 plot(parks_ppp,
-     main = "Red Fox in BC",
+     main = "",
      cex = 0.9,
      col ="white",
      border = 3,
@@ -100,11 +91,20 @@ Here we have plotted all the occurrences of Red Fox in the BC region and we can 
 
 Briefly describe the data and what variables are included. Provide a detailed description of the analytical workflow that was applied to the data, citing any relevant literature and statistical packages employed. There should be enough information that anyone can reproduce the workflow if they had access to the data. Length: As long as necessary.
 
+The data comes from the Global Biodiversity Information Facility (GBIF) databases. We used the package `rgbif` to access the 'Vulpes Vulpes' data from R directly, sorting by instances occuring in BC. We've extracted the longitude and latitude data from this, and converted it appropriately using the `sp` package. 
+
+Our second source of data contained the BC Window object, as well as possible covariate data: elevation, forest cover, Human Footprint Index (HFI) and distance to water.
+
+We used the package `spatstat` to build a `ppp` object with the converted coordinates of the Red Fox locations from the GBIF data and the window from our second data source. 
+
+To conduct first moment analysis, we used functions from the aforementioned `spatstat` package. We did a quadrat test as well as hotspot analysis to gain insight into the homogeneity assumption of the point process.
+
+For second moment analysis, we looked into Ripley's K-function and pair correlation function using functions from `spatstat`. This provides us with insight into possible clustering tendencies of the point process.
+
+Next we looked into the relationship with covariates.
 
 
 ## First Moment Analysis
-
-
 ```{r}
 #summary(parks_ppp)
 intensity(parks_ppp)
@@ -112,52 +112,48 @@ intensity(parks_ppp)
 Per the summary, Average intensity 5.063089e-10 points per square unit which is 
 0.0000000005063089 per square unit and this does not explain the observance of Vulpes Vulpes in a meaningful way.
 
-Quadratcount:
+### Quadratcount:
 5 by 5 and 10 by 10 - Both convey different view points on the intensity of the observance.
 According to plot 1, most of the Vulpes Vulpes are spotted in the South West areas around Vancouver.
 
 The 10X10 figure shows the intensity is high in the coastal areas with higher density in the South West region.
 
 
-```{r warning=FALSE}
+```{r, fig.cap = "Quadrat counts of Red Fox occurences, left 5x5, right 10x10"}
 #Split into a 5 by 5 quadrat and count points
-Q <- quadratcount(parks_ppp,
+Q5 <- quadratcount(parks_ppp,
                   nx = 5,
                   ny = 5)
 
-#Plot the output 
-par(mfrow=c(1,2))
-plot(parks_ppp,
-     pch = 12,
-     cex = 0.5,
-     cols = "#046C9A",
-     main = "Vulpes Vulpes locations")
-
-plot(Q, cex = 1, col = "red", add = T)
-
-Q <- quadratcount(parks_ppp,
+Q10 <- quadratcount(parks_ppp,
                   nx = 10,
                   ny = 10)
-
 #Plot the output 
 par(mfrow=c(1,2))
 plot(parks_ppp,
      pch = 12,
      cex = 0.5,
      cols = "#046C9A",
-     main = "Beilschmiedia pendula locations")
-
-plot(Q, cex = 1, col = "red", add = T)
+     main = "")
+plot(Q5, cex = 1, col = "red", add = T)
+plot(parks_ppp,
+     pch = 12,
+     cex = 0.5,
+     cols = "#046C9A",
+     main = "")
+plot(Q10, cex = 1, col = "red", add = T)
 ```
+
 Quadrat counting suggests varying intensity and to confirm that the variation is not due to chance alone, we conduct an objective test for spatial (in)homogeneity. We do a Chi-square test to validate if the deviations are significant.
 
 ```{r warning=FALSE}
 #Quadrat test of homogeneity 
-quadrat.test(Q)
+quadrat.test(Q10)
 ```
 The null hypothesis of the test suggests homogeneity in the process and as the p-value is very small, the null hypothesis is rejected and its confirmed there is significant deviation from homogeneity.
 
-Hot spot analysis:
+### Hot spot analysis:
+
 As the next step, we analyze for any hot spots in the south west coastal areas of BC.
 
 ```{r}
@@ -169,6 +165,7 @@ LR <- scanLRTS(parks_ppp, r = R)
 
 #Plot the output 
 plot(LR)
+plot(parks_ppp[["window"]], add = T)
 
 #Compute local p-values
 pvals <- eval.im(pchisq(LR,
@@ -178,6 +175,7 @@ pvals <- eval.im(pchisq(LR,
 
 #Plot the output
 plot(pvals, main = "Local p-values")
+plot(parks_ppp[["window"]], add = T)
 ```
 
 Question: Do we need p -value intensity analysis? Also, is it possible to add the window for better observation window boundary (shape of BC)?
@@ -185,98 +183,60 @@ Question: Do we need p -value intensity analysis? Also, is it possible to add th
 ```{r, eval=FALSE}
 #add marks and relationship with one covariate to start with
 #parks_ppp <- ppp(x = data.sp_trans$decimalLatitude, # X coordinates
-                    y = data.sp_trans$decimalLongitude)
+                    #y = data.sp_trans$decimalLongitude)
 
 #.....
 ```
 
-## Covariates Analysis
-Our data includes 4 covariates we can explore: the elevation, the forest cover, the human footprint inventory (HFI), and the distance to water. Given our research questions, we will start with investigating the HFI and the forest cover.
-
-### HFI
-```{r warning=F}
-plot(DATA$HFI, box = F, par(cex.main = 2), main = "HFI")
-plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
-```
-From this plot, it is hard to tell if there is a possible relationship between a red fox occurence and the HFI.
-
-### Forest Cover
-```{r warning=F}
-plot(DATA$Forest, box = F, par(cex.main = 2), main = "Forest")
-plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
-```
-
-It is also very hard to see if there is a relationship, this time because there are a lot of high values for forest cover all over the province.
-
-### Distance to water
-```{r warning=F}
-plot(DATA$Dist_Water, box = F, par(cex.main = 2), main = "Distance to water")
-plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
-```
-
-
-### Elevation
-```{r warning=F}
-plot(DATA$Elevation, box = F, par(cex.main = 2), main = "Elevation")
-plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
-```
-
-
-Conclusion: maybe need to segment the continuous values of covariates so that it is easier to see trend, like histogram in lab 1.
 
 ## 2nd Moment Analysis
-
-### Morisita's Index plot
-this produces an error, and we don't need to include it
-```{r, eval=F}
-miplot(parks_ppp,
-       main = "",
-       pch = 16,
-       col = "maroon")
-```
 
 ### Ripley's K function
 Ripley's K-function provides information on whether there are significant deviations from independence between points.
 
-```{r}
-k_fox <- Kest(parks_ppp)
-plot(k_fox, lwd=2)
-```
-The blue line is the theoretical line. (I don't know what the other lines mean)
+Assuming homogeneity in the point process, we see that the actual occurence lines appear clustered, as the black line does not overlap with the expected red line confidence intervals (significance level of 0.05).
 
-Adding confidence interval at a significance level of 0.05:
-```{r}
+```{r fig.cap="Ripley's K function with border correction assuming homogeneity"}
 E_fox_homo <- envelope(parks_ppp,
                   Kest,
                   correction="border",
                   rank = 1,
                   nsim = 19, # aka alpha of 0.05
-                  fix.n = T)
-plot(E_fox_homo, lwd = 2)
+                  fix.n = T,
+                  verbose = F)
+plot(E_fox_homo, lwd = 2, main = "")
 ```
-(I don't know why it only plotted these lines and not the other ones) 
-We see that the effect appears significant. It is suspicious that the confidence bands increase a lot, (what's the explanation for that?)
+ 
+In Figure 3 we see that the effect appears significant. It is suspicious that the confidence bands increase a lot, (what's the explanation for that?)
 
-However, we know from first moment analysis that the intensity does not seem homogenous (right? Might need to double check). Trying inhomogenous: 
-```{r}
+However, we know from first moment analysis that the intensity does not seem homogenous. Using the Kinhom function ensures that we are not assuming the intensity is homogenous. From Figure 4, it seems like from the smaller numbers, ie smaller distances between points, there is 'evidence' of clustering, whereas there are funny things going on as distances increase.  The deviations are still meaninful in the 'smaller' distances, suggesting that the relationship between points may be due to effects between points rather than relationship with covariates. 
+
+```{r fig.cap="Ripley's K function with border correction assuming inhomogeneity"}
 E_fox <- envelope(parks_ppp,
                   Kinhom,
                   correction="border",
                   rank = 1,
                   nsim = 19, # aka alpha of 0.05
-                  fix.n = T)
-plot(E_fox, lwd = 2)
+                  fix.n = T,
+                  verbose = F)
+plot(E_fox, lwd = 2, main = "")
 ```
 
-Using the Kinhom function ensures that we are not assuming the intensity is homogenous. It seems like from the smaller numbers, ie smaller distances between points, there is 'evidence' of clustering, whereas there are funny things going on as distances increase.  The deviations are still meaninful in the 'smaller' distances, suggesting that the relationship between points may be due to effects between points rather than relationship with covariates. 
+
 
 ### Pair correlation function
-```{r}
+
+[Explanation why we use pair correlation function]
+We observe that there seem to be evidence for clustering at smaller than 50 000, but after that it rides the y = 1 line slightly under. 
+
+We need to validate clustering effects after modeling the data with covariates.
+
+```{r fig.cap="Pair correlation function assuming inhomogeneity"}
 # Estimate the g function
 pcf_fox <- pcfinhom(parks_ppp) # assumes inhomogeneity
 
 # Default plot method
-plot(pcf_fox, lwd = 2)
+#plot(pcf_fox, lwd = 2)
 
 # visualise the results
 plot(pcf_fox,
@@ -292,11 +252,10 @@ plot(pcf_fox,
      lwd = 2,
      add = T)
 ```
-We observe that there seem to be evidence for clustering at smaller than 50 000, but after that it rides the y = 1 line slightly under. 
 
-We need to validate clustering effects after modeling the data with covariates.
 
 ## Relationship with Covariates 
+Our data includes 4 covariates we can explore: the elevation, the forest cover, the human footprint inventory (HFI), and the distance to water. Given our research questions, we will start with investigating the HFI and the forest cover.
 
 ### HFI
 ```{r, warning=F}
