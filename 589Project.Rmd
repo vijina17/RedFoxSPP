@@ -8,7 +8,7 @@ output: pdf_document
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,fig.width=8, fig.height=6)
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Libraries
@@ -119,7 +119,7 @@ According to plot 1, most of the Vulpes Vulpes are spotted in the South West are
 The 10X10 figure shows the intensity is high in the coastal areas with higher density in the South West region.
 
 
-```{r}
+```{r warning=FALSE}
 #Split into a 5 by 5 quadrat and count points
 Q <- quadratcount(parks_ppp,
                   nx = 5,
@@ -151,7 +151,7 @@ plot(Q, cex = 1, col = "red", add = T)
 ```
 Quadrat counting suggests varying intensity and to confirm that the variation is not due to chance alone, we conduct an objective test for spatial (in)homogeneity. We do a Chi-square test to validate if the deviations are significant.
 
-```{r}
+```{r warning=FALSE}
 #Quadrat test of homogeneity 
 quadrat.test(Q)
 ```
@@ -159,6 +159,7 @@ The null hypothesis of the test suggests homogeneity in the process and as the p
 
 Hot spot analysis:
 As the next step, we analyze for any hot spots in the south west coastal areas of BC.
+
 ```{r}
 # Estimate R
 R <- bw.ppl(parks_ppp)
@@ -183,7 +184,7 @@ Question: Do we need p -value intensity analysis? Also, is it possible to add th
 
 ```{r, eval=FALSE}
 #add marks and relationship with one covariate to start with
-parks_ppp <- ppp(x = data.sp_trans$decimalLatitude, # X coordinates
+#parks_ppp <- ppp(x = data.sp_trans$decimalLatitude, # X coordinates
                     y = data.sp_trans$decimalLongitude)
 
 #.....
@@ -293,7 +294,6 @@ plot(pcf_fox,
 ```
 We observe that there seem to be evidence for clustering at smaller than 50 000, but after that it rides the y = 1 line slightly under. 
 
-
 We need to validate clustering effects after modeling the data with covariates.
 
 ## Relationship with Covariates 
@@ -306,7 +306,6 @@ plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
 
 ```{r}
 rho_HFI <- rhohat(parks_ppp, DATA$HFI)
-
 
 par(mfrow = c(1,2))
 plot(rho_HFI,
@@ -374,23 +373,55 @@ plot(rho_elev,
 #     xlab = "Gradient (degrees)")
 ```
 
-There seems to be non-linear relationship between forest cover and number of red lions observed. The observance increase with increase in forest cover at intermediate coverage and then it decreases.
+There seems to be non-linear relationship between forest cover and number of red foxs observed. The observance increase with increase in forest cover at intermediate coverage and then it decreases.
 
 Next is to observe if there is any correlation between the covariates (collinearity in the covariates dataset). This is necessary to avoid any identifiability issues in modeling the data.
 
 ### Elevation
 
+```{r warning=F}
+plot(DATA$Elevation, box = F, par(cex.main = 2), main = "Elevation")
+plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
+```
+
+
 ```{r}
+#Estimate Rho for elevation
+rho_elev <- rhohat(parks_ppp, DATA$Elevation)
+
+#Plot Rho
+par(mfrow = c(1,2))
+plot(rho_elev,
+     main = "",
+     xlab = "Elevation")
+plot(rho_elev,
+     main = "",
+     xlab = "Elevation", xlim = c(0,3000))
 
 ```
+
+In the first figure, there seems to be no relationship but after taking a closer look we see that there is non-linear relationship. The relationship appears to be non-linear as the graph is showing diffrent results for different elevation and we cannot see any type of specific pattern from the same.
 
 ### Distance to Water
 
-```{r}
-
+```{r warning=F}
+plot(DATA$Dist_Water, box = F, par(cex.main = 2), main = "Distance from Water")
+plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
 ```
 
 
+```{r}
+#Estimate Rho for water distance
+rho_water <- rhohat(parks_ppp, DATA$Dist_Water)
+
+#Plot Rho
+plot(rho_water,
+     main = "",
+     xlab = "Distance from Water")
+
+```
+
+In the above figure, we wee there there is non liner relationship.
 
 ### 2. Fix issues with collinearity
 ```{r}
