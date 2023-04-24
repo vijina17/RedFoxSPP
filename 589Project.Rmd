@@ -383,11 +383,19 @@ plot(rho_water,
 In the above figure, we see that there is non liner relationship.
 
 
-### 2. Fix issues with collinearity
+### 2. Checking collinearity
+
 ```{r}
+cor.im(DATA$Forest, DATA$HFI, DATA$Elevation, DATA$Dist_Water, use = "complete.obs")
+```
+
+We see that no covariate is strongly collinear with another, and so we can move on without taking so into account and treating the covariates as independent.
+
+```{r}
+# Viji's code from b4
 #Check for collinearity
-x <- DATA$HFI
-y <- DATA$Forest
+#x <- DATA$HFI
+#y <- DATA$Forest
 #Y<- solapply(x,y,scaletointerval.im)
 #im.apply(Y, cor.im,na.rm=TRUE,fun.handles.na=TRUE, check=TRUE)
 
@@ -396,7 +404,6 @@ y <- DATA$Forest
 #}
 
 #class(y)
-
 ```
 
 
