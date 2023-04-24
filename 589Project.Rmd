@@ -421,7 +421,8 @@ plot(rho_water,
 
 ```
 
-In the above figure, we wee there there is non liner relationship.
+In the above figure, we see that there is non liner relationship.
+
 
 ### 2. Fix issues with collinearity
 ```{r}
@@ -455,11 +456,12 @@ y <- DATA$Forest
 ## Model Fitting
 Try different models - linear and quadratic, do necessary anova and other tests for model selection and validation
 
+
+
 ### Model with Forest
 ```{r}
 #Fit the PPP model
 fit <- ppm(parks_ppp ~ Forest + I(Forest^2),data=DATA)
-
 fit
 ```
 All variables look significant.
@@ -484,9 +486,54 @@ plot(parks_ppp,
 ```
 Does not look like a good fit for all points and also not easy to interpret.
 
+### Model with Elevation
 ```{r}
-
+#Fit the PPP model
+fitElev <- ppm(parks_ppp ~ Elevation, data=DATA)
+fitElev
 ```
+
+```{r}
+#Plot the model predictions
+plot(fitElev,
+     se = FALSE,
+     superimpose = FALSE)
+
+#Overlay the red fox locations
+plot(parks_ppp,
+     pch = 16,
+     cex = 0.6,
+     cols = "white",
+     add = TRUE)
+```
+
+### Model with Distance to Water
+```{r}
+#Fit the PPP model
+fitWater <- ppm(parks_ppp ~ Dist_Water, data=DATA)
+fitWater
+```
+```{r}
+#Plot the model predictions
+plot(fitWater,
+     se = FALSE,
+     superimpose = FALSE)
+
+#Overlay the red fox locations
+plot(parks_ppp,
+     pch = 16,
+     cex = 0.6,
+     cols = "white",
+     add = TRUE)
+```
+
+
+Here Elevation is significant but Dist to Water is not significant. 
+
+```{r}
+AIC(fitHFI);AIC(fit);AIC(fitElev);AIC(fitWater)
+```
+
 
 
 ### Analyze - linear+quad, AIC
