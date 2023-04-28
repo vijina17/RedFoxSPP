@@ -104,6 +104,10 @@ For second moment analysis, we looked into Ripley's K-function and pair correlat
 Next we looked into the relationship of the intensity with each covariate. 
 
 
+# Results
+
+## Exploratory Analysis (First Moment till Covariates & basic individual models)
+
 ## First Moment Analysis
 
 ### Quadratcount
@@ -374,48 +378,6 @@ plot(rho_water,
 
 In the above figure, we see that there is non liner relationship.
 
-
-### 2. Checking collinearity
-
-```{r}
-cor.im(DATA$Forest, DATA$HFI, DATA$Elevation, DATA$Dist_Water, use = "complete.obs")
-```
-
-We see that no covariate is strongly collinear with another, and so we can move on without taking so into account and treating the covariates as independent.
-
-```{r}
-# Viji's code from b4
-#Check for collinearity
-#x <- DATA$HFI
-#y <- DATA$Forest
-#Y<- solapply(x,y,scaletointerval.im)
-#im.apply(Y, cor.im,na.rm=TRUE,fun.handles.na=TRUE, check=TRUE)
-
-#FUNC <- function(x,y){
-#  cor.im(x,y)
-#}
-
-#class(y)
-```
-
-
-```{r}
-#plot(DATA$HFI$v ~ DATA$Forest$v,
-#     xlab = "HFI",
-#     ylab = "Forest",
-#     pch = 16,
-#     cex = 0.3,
-#     col = "#046C9A")
-```
-
-
-### 3. Finalize and summarize about other two variables - elevation and water.
-
-## Model Fitting
-Try different models - linear and quadratic, do necessary anova and other tests for model selection and validation
-
-
-
 ### Model with Forest
 ```{r}
 #Fit the PPP model
@@ -488,19 +450,253 @@ plot(parks_ppp,
 
 Here Elevation is significant but Dist to Water is not significant. 
 
+### 2. Checking collinearity
+
 ```{r}
-AIC(fitHFI);AIC(fit);AIC(fitElev);AIC(fitWater)
+cor.im(DATA$Forest, DATA$HFI, DATA$Elevation, DATA$Dist_Water, use = "complete.obs")
+```
+
+We see that no covariate is strongly collinear with another, and so we can move on without taking so into account and treating the covariates as independent.
+
+
+
+```{r}
+#plot(DATA$HFI$v ~ DATA$Forest$v,
+#     xlab = "HFI",
+#     ylab = "Forest",
+#     pch = 16,
+#     cex = 0.3,
+#     col = "#046C9A")
+```
+
+
+### 3. Finalize and summarize about other two variables - elevation and water.
+Elevation is significant...so that is included in the model.
+
+##End of EDA and covariates analysis
+
+## Model Fitting
+Try different models - linear and quadratic, do necessary anova and other tests for model selection and validation
+
+```{r}
+#Fit the PPP model
+fit_red <- ppm(parks_ppp ~ Forest + I(Forest^2) + HFI + I(HFI^2)+ Elevation + I(Elevation^2), data = DATA)
+
+fit_red
+```
+Forest related variables are not highly significant when compared to HFI and elevation but
+still significant. So we retain them in the model.
+
+```{r}
+#Plot the model predictions
+plot(fit_red,
+     se = FALSE,
+     superimpose = FALSE,log=TRUE,n=500)
+
+#Overlay the red fox locations
+plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
+
+```
+```{r}
+#Calculate the residuals
+#res <- residuals(fit_red)
+
+#Visualise
+#plot(res, cols = "transparent",)
+
+#Due to error with residuals function for this data, diagnose.ppm is used instead
+diagnose.ppm(fit_red)
+
+```
+
+```{r}
+#Fit the PPP model
+fit_red2 <- ppm(parks_ppp ~ HFI + I(HFI^2)+ Elevation + I(Elevation^2), data = DATA)
+
+fit_red2
+```
+
+```{r}
+#Plot the model predictions
+plot(fit_red2,
+     se = FALSE,
+     superimpose = FALSE,log=TRUE,n=500)
+
+#Overlay the red fox locations
+plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
+```
+
+```{r}
+#AIC(fitHFI); AIC(fitHFIexp); AIC(fitHFIquad); AIC(fit_for); AIC(fit_red)
+AIC(fit_red); AIC(fit_red2)
+```
+
+### Validate if we need GAM - 5. linear vs gam - table: evaluate, AIC, visualize
+
+```{r}
+#Run the quadrat test
+quadrat.test(fit_red2, nx = 5, ny = 5)
 ```
 
 
 
-### Analyze - linear+quad, AIC
+```{r}
+#Calculate the relative intensity as a function of elevation
+#rh_elev <- rhohat(fit_red2, DATA$Elevation)
 
-### Validate if we need GAM - 5. linear vs gam - table: evaluate, AIC, visualize
+#Calculate the relative intensity as a function of forest
+#rh_for <- rhohat(fit_red, DATA$Forest)
 
-# Results: Length: Describe your statistical findings. Tables and figures should be used throughout. Length: As long as necessary.
+#Calculate the relative intensity as a function of forest
+#rh_HFI <- rhohat(fit_red, DATA$HFI)
 
-## Findings from EDA
+#Side by side plotting
+#par(mfrow = c(1,2))
+#plot(rh_elev,
+#     legend = FALSE,
+#     main = "",
+#     xlab = "Elevation (m)")
+#plot(rh_for,
+#     legend = FALSE,
+#     main = "",
+#     xlab = "Forest")
+#plot(rh_HFI,
+#     legend = FALSE,
+#     main = "",
+#     xlab = "HFI")
+```
+
+Rho plots do not run due to NA error.
+     
+# using above, check the intensity.
+
+##Calculate partial residuals only for 2 covariates
+
+
+```{r}
+#Calculate the partial residuals as a function of elevation
+par_res_elev <- parres(fit_red2, "Elevation")
+
+#Calculate the relative intensity as a function of HFI
+par_res_HFI <- parres(fit_red2, "HFI")
+
+#Side by side plotting
+par(mfrow = c(1,2))
+plot(par_res_elev,
+     legend = FALSE,
+     lwd = 2,
+     main = "",
+     xlab = "Elevation (m)")
+plot(par_res_HFI,
+     legend = FALSE,
+     lwd = 2,
+     main = "",
+     xlab = "HFI")
+```
+
+
+```{r}
+#Mean HFI
+E_hfi <- mean(DATA$HFI)
+
+#Elevational effect on lambda at mean HFI
+elev_effect <- effectfun(fit_red2, "Elevation", HFI = E_hfi, se.fit = T)
+
+
+#Mean elevation
+E_elev <- mean(DATA$Elevation)
+
+#HFI effect on lambda at mean elevation
+hfi_effect <- effectfun(fit_red2, "HFI", Elevation = E_elev, se.fit = T)
+
+#Side by side plotting
+par(mfrow = c(1,2))
+#Plot the elevation effect 
+plot(elev_effect,
+     legend = FALSE,
+     main = "Elevational effect at mean HFI")
+
+#Plot the slope effect 
+plot(hfi_effect,
+     legend = FALSE,
+     main = "Effect of HFI at mean elevation")
+```
+
+
+```{r}
+#Plot the model predictions
+plot(fit_red2,
+     se = FALSE,
+     superimpose = FALSE,log=TRUE,n=500,
+     main = "Estimated Red Fox intensity")
+
+#Overlay the red fox locations
+plot(parks_ppp,
+     pch = 16,
+     cex = 0.6,
+     cols = "white",
+     add = TRUE)
+plot(parks_ppp,
+     pch = 16,
+     cex = 0.5,
+     cols = "black",
+     add = TRUE)
+```
+
+```{r}
+diagnose.ppm(fit_red2)
+```
+
+```{r}
+library(splines)
+
+#Fit the PPP model
+fit_smooth <- ppm(parks_ppp ~ bs(Elevation,12) + bs(HFI, 5), data = DATA, use.gam = TRUE)
+
+fit_smooth
+```
+```{r}
+#Delta AIC
+AIC(fit_red2) - AIC(fit_smooth)
+AIC(fit_smooth)
+```
+```{r}
+#Calculate the partial residuals as a function of elevation
+par_res_elev <- parres(fit_smooth, "Elevation")
+
+#Calculate the relative intensity as a function of HFI
+par_res_HFI <- parres(fit_smooth, "HFI")
+
+#Side by side plotting
+par(mfrow = c(1,2))
+plot(par_res_elev,
+     legend = FALSE,
+     lwd = 2,
+     main = "",
+     xlab = "Elevation (m)")
+plot(par_res_HFI,
+     legend = FALSE,
+     lwd = 2,
+     main = "",
+     xlab = "HFI")
+```
+Higher powers for elevation - error with convergence
+
+
+```{r}
+#AIC(fitHFI);AIC(fit);AIC(fitElev);AIC(fitWater)
+```
+```{r}
+AIC(fit_red); AIC(fit_red2); AIC(fit_smooth)
+```
+
+```{r}
+#Likelihood ratio test
+anova(fit_red2,fit_red, test = "LRT")
+```
+
+
+
 
 ## model: Tablulate observations -4. table to summarize models - linear+quad, AIC
 
