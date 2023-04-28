@@ -232,7 +232,7 @@ To get a sense of the distances for which clustering occurs, we used the pair co
 # estimate a strickly pos density
 lambda_pos <- density(parks_ppp,sigma=bw.ppl,positive=TRUE)
 # estimating with bootstraped ci
-pcf_fox <- envelope(parks_ppp, pcfinhom, simulate = expression(rpoispp(lambda_pos)),rank = 1, nsim = 19)
+pcf_fox <- envelope(parks_ppp, pcfinhom, simulate = expression(rpoispp(lambda_pos)),rank = 1, nsim = 19,verbose = F)
 # Default plot method
 #plot(pcf_fox, lwd = 2)
 
@@ -245,26 +245,35 @@ plot(pcf_fox, main = "")
 
 ## Relationship with Covariates 
 
-Our data includes 4 covariates which we are exploring: the elevation, the forest cover, the human footprint inventory (HFI), and the distance to water. Given our research questions, we will start with investigating the HFI and the forest cover.
+Our data includes 4 covariates which we are exploring: the elevation, the forest cover, the human footprint inventory (HFI), and the distance to water. Given our research questions, we were expecting HFI and forest cover to have a relationship, but we have also investigated the two other covariates.
 
-### Plotting Red Fox wrt HFI, Forest, Elevation, Distance to Water
 
 ```{r, warning=F, fig.cap="Red Fox plotting in various covariets"}
 par(mfrow=c(2,2))
 
-plot(DATA$HFI, box = F, par(cex.main = 2), main = "HFI")
+plot(DATA$HFI, box = F, par(cex.main = 1), main = "HFI")
+plot(parks_ppp,
+pch = 16,
+cex = 0.6,
+cols = "white",
+add = TRUE)
+plot(parks_ppp,
+pch = 16,
+cex = 0.5,
+cols = "black",
+add = TRUE)
+
+plot(DATA$Forest, box = F, par(cex.main = 1), main = "Forest")
 plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
 
-plot(DATA$Forest, box = F, par(cex.main = 2), main = "Forest")
-plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
-
-plot(DATA$Elevation, box = F, par(cex.main = 2), main = "Elevation")
+plot(DATA$Elevation, box = F,  main = "Elevation")
 plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
 
 plot(DATA$Dist_Water, box = F, par(cex.main = 2), main = "Distance from Water")
 plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
 ```
-Here we see the red fox is seen more in the averagely densed population area and near highly densed forest area. In case of elevation, red foxes are seen in moverately elevated area and where the distance to water is low to medium. 
+
+In Figure 6, we can see the observed data over the values of the covariates, and get a first idea of possible relationships. We see the red fox is seen more in the averagely densed population area and near highly densed forest area. In case of elevation, red foxes are seen in moderately elevated area and where the distance to water is low to medium. 
 
 ### Smoothing Estimate of the 4 Covariates Transformation
 
@@ -294,7 +303,7 @@ plot(rho_elev,
      xlab = "Elevation")
 plot(rho_elev,
      main = "",
-     xlab = "Elevation", xlim = c(0,3000))
+     xlab = "Elevation", xlim = c(0,max(DATA$Elevation)))
 
 #Estimate Rho for water distance
 rho_water <- rhohat(parks_ppp, DATA$Dist_Water)
