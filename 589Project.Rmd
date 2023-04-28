@@ -5,8 +5,6 @@ date: "2023-04-09"
 output: pdf_document
 ---
 
-
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = F,fig.width=8, fig.height=6, warning = F, cache = T, message = F)
 ```
@@ -19,11 +17,6 @@ library(sp) #Standardized Support for Spatial Vector Data
 library(sf)
 library(spatstat)
 library(maptools)
-#library(raster)
-#library(mapcan)
-#library(bcmaps)
-#library(tidyverse)
-#library(rgdal)
 ```
 
 # Introduction
@@ -251,101 +244,51 @@ plot(pcf_fox, main = "")
 
 
 ## Relationship with Covariates 
-Our data includes 4 covariates we can explore: the elevation, the forest cover, the human footprint inventory (HFI), and the distance to water. Given our research questions, we will start with investigating the HFI and the forest cover.
 
-### HFI
-```{r, warning=F}
-plot(DATA$HFI, box = F, par(cex.main = 2), main = "Forest")
+Our data includes 4 covariates which we are exploring: the elevation, the forest cover, the human footprint inventory (HFI), and the distance to water. Given our research questions, we will start with investigating the HFI and the forest cover.
+
+### Plotting Red Fox wrt HFI, Forest, Elevation, Distance to Water
+
+```{r, warning=F, fig.cap="Red Fox plotting in various covariets"}
+par(mfrow=c(2,2))
+
+plot(DATA$HFI, box = F, par(cex.main = 2), main = "HFI")
+plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
+
+plot(DATA$Forest, box = F, par(cex.main = 2), main = "Forest")
+plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
+
+plot(DATA$Elevation, box = F, par(cex.main = 2), main = "Elevation")
+plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
+
+plot(DATA$Dist_Water, box = F, par(cex.main = 2), main = "Distance from Water")
 plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
 ```
+Here we see the red fox is seen more in the averagely densed population area and near highly densed forest area. In case of elevation, red foxes are seen in moverately elevated area and where the distance to water is low to medium. 
+
+### Smoothing Estimate of the 4 Covariates Transformation
 
 ```{r}
-rho_HFI <- rhohat(parks_ppp, DATA$HFI)
 
-par(mfrow = c(1,2))
+par(mfrow=c(3,3))
+
+#Estimate Rho for HFI
+rho_HFI <- rhohat(parks_ppp, DATA$HFI)
 plot(rho_HFI,
      main = "",
      xlab = "HFI")
 plot(rho_HFI,
      main = "",
      xlab = "HFI", xlim = c(0,0.4))
-```
-
-
-
-In the first figure, we could be fooled into thinking that there is no relationship up to around HFI = 0.4, until which it seems like an exponentional relationship. However, zooming in from HFI 0 to 0.4, we see that the confidence bands don't intersect at all with the red line, which is the expected value given no relationship. This relationship appears non-linear and possibly exponential, where the greatest intensity of observed red foxes occurs at high HFIs. This relationship was expected, as our dataset is not exhaustive but rather is crowdsourced, and naturally foxes are more likely to be noticed by humans in spaces with higher HFIs.
-
-```{r}
-plot(log(rho_HFI$rho))
-```
-
-If we plot the log of the rho, we get a line that could be reasonably interpreted as linear. 
-
-### simple model
-```{r, warning=F}
-fitHFI <- ppm(parks_ppp ~ HFI,data=DATA)
-fitHFI
-```
-```{r}
-fitHFIexp <- ppm(parks_ppp~HFI + exp(HFI), data=DATA)
-fitHFIexp
-```
-```{r}
-AIC(fitHFI); AIC(fitHFIexp)
-```
-
-```{r}
-plot(fitHFIexp, se = F, superimpose = F)
-```
-
-
-### Forest Cover
-
-```{r warning=F}
-plot(DATA$Forest, box = F, par(cex.main = 2), main = "Forest")
-plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
-```
-
-### 1. To add : Add other covariates together - side by side
-
-```{r}
-#load the spatstat package
-library(spatstat)
-
 
 #Estimate Rho for Forest Cover
-rho_elev <- rhohat(parks_ppp, DATA$Forest)
-
-#Estimate Rho
-#rho_grad <- rhohat(bei, bei.extra$grad)
-
-#par(mfrow = c(1,2))
-plot(rho_elev,
+rho_forest <- rhohat(parks_ppp, DATA$Forest)
+plot(rho_forest,
      main = "",
      xlab = "Forest cover")
-#plot(rho_grad,
-#     main = "",
-#     xlab = "Gradient (degrees)")
-```
 
-There seems to be non-linear relationship between forest cover and number of red foxs observed. The observance increase with increase in forest cover at intermediate coverage and then it decreases.
-
-Next is to observe if there is any correlation between the covariates (collinearity in the covariates dataset). This is necessary to avoid any identifiability issues in modeling the data.
-
-### Elevation
-
-```{r warning=F}
-plot(DATA$Elevation, box = F, par(cex.main = 2), main = "Elevation")
-plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
-```
-
-
-```{r}
 #Estimate Rho for elevation
 rho_elev <- rhohat(parks_ppp, DATA$Elevation)
-
-#Plot Rho
-par(mfrow = c(1,2))
 plot(rho_elev,
      main = "",
      xlab = "Elevation")
@@ -353,93 +296,88 @@ plot(rho_elev,
      main = "",
      xlab = "Elevation", xlim = c(0,3000))
 
-```
-
-In the first figure, there seems to be no relationship but after taking a closer look we see that there is non-linear relationship. The relationship appears to be non-linear as the graph is showing diffrent results for different elevation and we cannot see any type of specific pattern from the same.
-
-### Distance to Water
-
-```{r warning=F}
-plot(DATA$Dist_Water, box = F, par(cex.main = 2), main = "Distance from Water")
-plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
-```
-
-
-```{r}
 #Estimate Rho for water distance
 rho_water <- rhohat(parks_ppp, DATA$Dist_Water)
-
-#Plot Rho
 plot(rho_water,
      main = "",
      xlab = "Distance from Water")
-
 ```
 
-In the above figure, we see that there is non liner relationship.
+In the first figure for HFI, we could be fooled into thinking that there is no relationship up to around HFI = 0.4, until which it seems like an exponential relationship. However, zooming in from HFI 0 to 0.4, we see that the confidence bands don't intersect at all with the red line, which is the expected value given no relationship. This relationship appears non-linear and possibly exponential, where the greatest intensity of observed red foxes occurs at high HFIs. This relationship was expected, as our dataset is not exhaustive but rather is crowdsourced, and naturally foxes are more likely to be noticed by humans in spaces with higher HFIs.
 
-### Model with Forest
+Regarding forest cover we can observe that there seems to be non-linear relationship between forest cover and number of red foxs observed. The observance increase with increase in forest cover at intermediate coverage and then it decreases. Next is to observe if there is any correlation between the covariates (collinearity in the covariates dataset). This is necessary to avoid any identifiability issues in modeling the data.
+
+Regarding the elevation, we see that there seems to be no relationship but after taking a closer look we see that there is non-linear relationship between elevation and the occurance of red foxes. The relationship appears to be non-linear as the graph is showing different results for different elevation and we cannot see any type of specific pattern from the same. In case of Distance to Water, we can observe from the above figure with red fox occurance with Distance to Water that  there is non liner relationship between the two. 
+
 ```{r}
-#Fit the PPP model
+par(mfrow=c(2,2))
+plot(log(rho_HFI$rho))
+plot(log(rho_forest$rho))
+plot(log(rho_elev$rho))
+plot(log(rho_water$rho))
+```
+
+If we plot the log of the rho, we get a line that could be reasonably interpreted as linear for HFI however the plots for other covariets deosnt seem linear. 
+
+### Fit models for the covariets
+
+```{r, warning=F}
+#Fit the PPP model for HFI
+fitHFI <- ppm(parks_ppp ~ HFI,data=DATA)
+fitHFI
+fitHFIexp <- ppm(parks_ppp~HFI + exp(HFI), data=DATA)
+fitHFIexp
+
+#Fit the PPP model for forest
 fit <- ppm(parks_ppp ~ Forest + I(Forest^2),data=DATA)
 fit
-```
-All variables look significant.
 
-```{r}
-#Plot the model predictions
-plot(fit,
-     se = FALSE,
-     superimpose = FALSE)
-
-#Overlay the red fox locations
-plot(parks_ppp,
-     pch = 16,
-     cex = 0.6,
-     cols = "white",
-     add = TRUE)
-plot(parks_ppp,
-     pch = 16,
-     cex = 0.5,
-     cols = "black",
-     add = TRUE)
-```
-Does not look like a good fit for all points and also not easy to interpret.
-
-### Model with Elevation
-```{r}
-#Fit the PPP model
+#Fit the PPP model for Elevation
 fitElev <- ppm(parks_ppp ~ Elevation, data=DATA)
 fitElev
-```
 
-```{r}
-#Plot the model predictions
-plot(fitElev,
-     se = FALSE,
-     superimpose = FALSE)
-
-#Overlay the red fox locations
-plot(parks_ppp,
-     pch = 16,
-     cex = 0.6,
-     cols = "white",
-     add = TRUE)
-```
-
-### Model with Distance to Water
-```{r}
-#Fit the PPP model
+#Fit the PPP model for Distance to water
 fitWater <- ppm(parks_ppp ~ Dist_Water, data=DATA)
 fitWater
 ```
-```{r}
-#Plot the model predictions
-plot(fitWater,
-     se = FALSE,
-     superimpose = FALSE)
+We have fitted 6 models and we came to observe that HFI, exp(HFI), Forest, I(Forest^2) and elevation seems to be highly significant however Distance to Water seems to be in-significant for the occurrence of red foxes in the BC area.
 
-#Overlay the red fox locations
+```{r}
+AIC(fitHFI); AIC(fitHFIexp); AIC(fit); AIC(fitElev); AIC(fitWater)
+```
+
+## Plot the fitted models
+
+```{r}
+
+par(mfrow=c(2,2))
+
+#Plot the model predictions for HFI(Exp) & overlay the red fox locations
+plot(fitHFIexp, se = F, superimpose = F, main="Fitted Model for HFI(Exp)")
+plot(parks_ppp,
+     pch = 16,
+     cex = 0.6,
+     cols = "white",
+     add = TRUE)
+
+#Plot the model predictions for Forest & overlay the red fox locations
+plot(fit, se = F, superimpose = F, main="Fitted Model for Forest")
+plot(parks_ppp,
+     pch = 16,
+     cex = 0.6,
+     cols = "white",
+     add = TRUE)
+
+#Plot the model predictions for Elevation & overlay the red fox locations
+plot(fitElev, se = F, superimpose = F, main="Fitted Model for Elevation")
+plot(parks_ppp,
+     pch = 16,
+     cex = 0.6,
+     cols = "white",
+     add = TRUE)
+
+#Plot the model predictions for Distance to Water & overlay the red fox locations
+plot(fitWater, se = FALSE, superimpose = FALSE, main="Fitted Model for Distance to Water)")
 plot(parks_ppp,
      pch = 16,
      cex = 0.6,
@@ -447,8 +385,8 @@ plot(parks_ppp,
      add = TRUE)
 ```
 
+Does not look like a good fit for all points in forest and also not easy to interpret. Here Elevation is significant but Dist to Water is not significant. 
 
-Here Elevation is significant but Dist to Water is not significant. 
 
 ### 2. Checking collinearity
 
@@ -457,7 +395,6 @@ cor.im(DATA$Forest, DATA$HFI, DATA$Elevation, DATA$Dist_Water, use = "complete.o
 ```
 
 We see that no covariate is strongly collinear with another, and so we can move on without taking so into account and treating the covariates as independent.
-
 
 
 ```{r}
