@@ -2,11 +2,13 @@
 title: "Red Foxes in BC: an Analysis of the Spatial Point Process"
 author: "Nowshaba Durrani, Ricky Heinrich, Viji Rajagopalan"
 date: "2023-04-09"
-output: pdf_document
+output: 
+  pdf_document: 
+    extra_dependencies: ["float"]
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = F,fig.width=8, fig.height=6, warning = F, cache = T, message = F)
+knitr::opts_chunk$set(echo = F,fig.width=8, fig.height=6, warning = F, cache = T, message = F,fig.pos = "H", out.extra = "", fig.align = 'center')
 ```
 
 
@@ -418,20 +420,7 @@ cor.im(DATA$Forest, DATA$HFI, DATA$Elevation, DATA$Dist_Water, use = "complete.o
 We see that no covariate is strongly collinear with another, and so we can move on without taking so into account and treating the covariates as independent.
 
 
-```{r}
-#plot(DATA$HFI$v ~ DATA$Forest$v,
-#     xlab = "HFI",
-#     ylab = "Forest",
-#     pch = 16,
-#     cex = 0.3,
-#     col = "#046C9A")
-```
-
-
-### 3. Finalize and summarize about other two variables - elevation and water.
-Elevation is significant...so that is included in the model.
-
-##End of EDA and covariates analysis
+## End of EDA and covariates analysis
 
 ## Model Fitting
 Try different models - linear and quadratic, do necessary anova and other tests for model selection and validation
