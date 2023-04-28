@@ -1,5 +1,5 @@
 ---
-title: "589Project"
+title: "Red Foxes in BC: an Analysis of the Spatial Point Process"
 author: "Nowshaba Durrani, Ricky Heinrich, Viji Rajagopalan"
 date: "2023-04-09"
 output: pdf_document
@@ -87,7 +87,7 @@ plot(parks_ppp,
 
 Here we have plotted all the occurrences of Red Fox in the BC region and we can see that the species are scattered in the region specially in the upper and middle part of the province. Now we will be exploring what is contributing to the occurrences of the species in the specific places based on various factors like elevation, close to water bodies, forests, human habitats, etc.
 
-# Methods:
+# Methods
 
 Briefly describe the data and what variables are included. Provide a detailed description of the analytical workflow that was applied to the data, citing any relevant literature and statistical packages employed. There should be enough information that anyone can reproduce the workflow if they had access to the data. Length: As long as necessary.
 
@@ -101,25 +101,16 @@ To conduct first moment analysis, we used functions from the aforementioned `spa
 
 For second moment analysis, we looked into Ripley's K-function and pair correlation function using functions from `spatstat`. This provides us with insight into possible clustering tendencies of the point process.
 
-Next we looked into the relationship with covariates.
+Next we looked into the relationship of the intensity with each covariate. 
 
 
 ## First Moment Analysis
+
+### Quadratcount
+We start with investigating whether the occurence of red foxes in BC seems homogeneous, as it will inform our steps to define the intensity. We have conducted a quadrat test of homogeneity with both 5 x 5 and 10 x 10 quadrats. These quadrats are shown in Figure 2, where we can visually tell that the intensity in each quadrats are not the same. The quadrat test for both the 5 x 5 and the 10 x 10 quadrats provide a p-value of 2.2e-16, confirming that the varied intensities are not due to chance alone, but rather due to an inhomogeneous point process. 
+
+
 ```{r}
-#summary(parks_ppp)
-intensity(parks_ppp)
-```
-Per the summary, Average intensity 5.063089e-10 points per square unit which is 
-0.0000000005063089 per square unit and this does not explain the observance of Vulpes Vulpes in a meaningful way.
-
-### Quadratcount:
-5 by 5 and 10 by 10 - Both convey different view points on the intensity of the observance.
-According to plot 1, most of the Vulpes Vulpes are spotted in the South West areas around Vancouver.
-
-The 10X10 figure shows the intensity is high in the coastal areas with higher density in the South West region.
-
-
-```{r, fig.cap = "Quadrat counts of Red Fox occurences, left 5x5, right 10x10"}
 #Split into a 5 by 5 quadrat and count points
 Q5 <- quadratcount(parks_ppp,
                   nx = 5,
@@ -128,6 +119,10 @@ Q5 <- quadratcount(parks_ppp,
 Q10 <- quadratcount(parks_ppp,
                   nx = 10,
                   ny = 10)
+```
+
+```{r, fig.cap = "Quadrat counts of Red Fox occurences, left 5x5, right 10x10", eval=F}
+
 #Plot the output 
 par(mfrow=c(1,2))
 plot(parks_ppp,
@@ -144,19 +139,35 @@ plot(parks_ppp,
 plot(Q10, cex = 1, col = "red", add = T)
 ```
 
-Quadrat counting suggests varying intensity and to confirm that the variation is not due to chance alone, we conduct an objective test for spatial (in)homogeneity. We do a Chi-square test to validate if the deviations are significant.
+```{r, fig.cap = "Intensity of Quadrat counts of Red Fox occurences, left 5x5, right 10x10"}
+#Plot the output 
+par(mfrow=c(1,2))
+plot(intensity(Q5, image = T),
+     main = "")
+plot(parks_ppp,
+     pch = 12,
+     cex = 0.5,
+     cols = "#046C9A", add = T)
+plot(intensity(Q10, image = T), main = "" )
+plot(parks_ppp,
+     pch = 12,
+     cex = 0.5,
+     cols = "#046C9A",
+     add = T)
+```
 
-```{r warning=FALSE}
+
+```{r warning=FALSE, eval=F}
 #Quadrat test of homogeneity 
 quadrat.test(Q10)
 ```
-The null hypothesis of the test suggests homogeneity in the process and as the p-value is very small, the null hypothesis is rejected and its confirmed there is significant deviation from homogeneity.
 
-### Hot spot analysis:
 
-As the next step, we analyze for any hot spots in the south west coastal areas of BC.
+### Hot spot analysis
 
-```{r}
+As the next step, we investigate analyze for any hot spots in the occurences of red foxes. In Figure 3, we can see that hotspots appear scattered around the province.
+
+```{r fig.cap = "Hotspot of Red Foxes"}
 # Estimate R
 R <- bw.ppl(parks_ppp)
 
@@ -164,39 +175,27 @@ R <- bw.ppl(parks_ppp)
 LR <- scanLRTS(parks_ppp, r = R)
 
 #Plot the output 
-plot(LR)
-plot(parks_ppp[["window"]], add = T)
+plot(LR, main = "")
+plot(parks_ppp[["window"]], border = "white", add = T)
 
 #Compute local p-values
 pvals <- eval.im(pchisq(LR,
                         df = 1,
                         lower.tail = FALSE))
 
-
 #Plot the output
-plot(pvals, main = "Local p-values")
-plot(parks_ppp[["window"]], add = T)
-```
-
-Question: Do we need p -value intensity analysis? Also, is it possible to add the window for better observation window boundary (shape of BC)?
-
-```{r, eval=FALSE}
-#add marks and relationship with one covariate to start with
-#parks_ppp <- ppp(x = data.sp_trans$decimalLatitude, # X coordinates
-                    #y = data.sp_trans$decimalLongitude)
-
-#.....
+#plot(pvals, main = "Local p-values")
+#plot(parks_ppp[["window"]],  add = T)
 ```
 
 
 ## 2nd Moment Analysis
 
 ### Ripley's K function
-Ripley's K-function provides information on whether there are significant deviations from independence between points.
+Ripley's K-function provides information on whether there are significant deviations from independence between points. Taking into account that the intensity of red fox occurences appear inhomogeneous, we can see in Figure 4 that there is some evidence of clustering up to a certain distance, as the black line, indicating the observed data, is separate from the 95% confidence bands of the values expected with no clustering. This suggests that the relationship between points may be due to effects between points rather than relationship with covariates. [CHECK THIS CLAIM ?] 
 
-Assuming homogeneity in the point process, we see that the actual occurence lines appear clustered, as the black line does not overlap with the expected red line confidence intervals (significance level of 0.05).
 
-```{r fig.cap="Ripley's K function with border correction assuming homogeneity"}
+```{r fig.cap="Ripley's K function with border correction assuming homogeneity", eval=F}
 E_fox_homo <- envelope(parks_ppp,
                   Kest,
                   correction="border",
@@ -205,11 +204,11 @@ E_fox_homo <- envelope(parks_ppp,
                   fix.n = T,
                   verbose = F)
 plot(E_fox_homo, lwd = 2, main = "")
-```
- 
-In Figure 3 we see that the effect appears significant. It is suspicious that the confidence bands increase a lot, (what's the explanation for that?)
 
-However, we know from first moment analysis that the intensity does not seem homogenous. Using the Kinhom function ensures that we are not assuming the intensity is homogenous. From Figure 4, it seems like from the smaller numbers, ie smaller distances between points, there is 'evidence' of clustering, whereas there are funny things going on as distances increase.  The deviations are still meaninful in the 'smaller' distances, suggesting that the relationship between points may be due to effects between points rather than relationship with covariates. 
+# Assuming homogeneity in the point process, we see that the actual occurence lines appear clustered, as the black line does not overlap with the expected red line confidence intervals (significance level of 0.05).
+```
+
+
 
 ```{r fig.cap="Ripley's K function with border correction assuming inhomogeneity"}
 E_fox <- envelope(parks_ppp,
@@ -226,31 +225,24 @@ plot(E_fox, lwd = 2, main = "")
 
 ### Pair correlation function
 
-[Explanation why we use pair correlation function]
-We observe that there seem to be evidence for clustering at smaller than 50 000, but after that it rides the y = 1 line slightly under. 
+To get a sense of the distances for which clustering occurs, we used the pair correlation function. Figure 5 shows evidence for clustering at distances smaller than around 23 000m, or 23km but after that the observed values are not significantly different that those expected from a random spatial process.
 
-We need to validate clustering effects after modeling the data with covariates.
 
 ```{r fig.cap="Pair correlation function assuming inhomogeneity"}
 # Estimate the g function
-pcf_fox <- pcfinhom(parks_ppp) # assumes inhomogeneity
+#pcf_fox <- pcfinhom(parks_ppp) # assumes inhomogeneity
 
+# estimate a strickly pos density
+lambda_pos <- density(parks_ppp,sigma=bw.ppl,positive=TRUE)
+# estimating with bootstraped ci
+pcf_fox <- envelope(parks_ppp, pcfinhom, simulate = expression(rpoispp(lambda_pos)),rank = 1, nsim = 19)
 # Default plot method
 #plot(pcf_fox, lwd = 2)
 
 # visualise the results
-plot(pcf_fox,
-     theo ~ r,
-     ylim = c(0,20),
-     main = "",
-     col = "grey70",
-     lwd = 2,
-     lty = "dashed")
-plot(pcf_fox,
-     iso ~ r,
-     col = c("#046C9A"),
-     lwd = 2,
-     add = T)
+plot(pcf_fox, main = "")
+#plot(pcf_fox,theo ~ r,ylim = c(0,20),main = "",col = "grey70",lwd = 2,lty = "dashed")
+#plot(pcf_fox,iso ~ r, col = c("#046C9A"),lwd = 2, add = T)
 ```
 
 
