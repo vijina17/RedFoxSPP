@@ -408,50 +408,35 @@ We see that no covariate is strongly collinear with another, and so we can move 
 
 
 ### 3. Finalize and summarize about other two variables - elevation and water.
-Elevation is significant...so that is included in the model.
+Elevation is significant so that is included in the model.
 
 ##End of EDA and covariates analysis
 
 ## Model Fitting
-Try different models - linear and quadratic, do necessary anova and other tests for model selection and validation
 
-```{r}
+From our assessment on individual covariates, we see that there is non-linear relationship between the covariates and the red fox point data. Based on this knowledge, we move forward to fit the first base model with covariates that are showing strong trend with red fox data and also of research interest. For this purpose, the selected covariates are 1. Elevation 2. HFI and 3. Forest Cover. 
+
+`ppm` function from `spatstat` package is used for building the model using the `ppp` object and linear and quadratic terms of $Elevation$, $HFI$ and $Forest$. We call this model as $model 1$.
+
+```{r fig.cap="Model 1 Details"}
 #Fit the PPP model
 fit_red <- ppm(parks_ppp ~ Forest + I(Forest^2) + HFI + I(HFI^2)+ Elevation + I(Elevation^2), data = DATA)
 
 fit_red
 ```
-Forest related variables are not highly significant when compared to HFI and elevation but
-still significant. So we retain them in the model.
+The results indicate that covariates $HFI$ and $Elevation$ show strong significance and explain occurrence of red fox data in either linear or quadratic terms. Though forest cover showed non-linear relationship in second moment analysis, in this combined model with other covariates, its not significant.
 
-```{r}
-#Plot the model predictions
-plot(fit_red,
-     se = FALSE,
-     superimpose = FALSE,log=TRUE,n=500)
+As our next step, we drop the covariate $Forest$ from the model and build the next model with $HFI$ and $Elevation$ with linear and quadratic terms using `ppm` function. We call this as $Model 2$.
 
-#Overlay the red fox locations
-plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
 
-```
-```{r}
-#Calculate the residuals
-#res <- residuals(fit_red)
-
-#Visualise
-#plot(res, cols = "transparent",)
-
-#Due to error with residuals function for this data, diagnose.ppm is used instead
-diagnose.ppm(fit_red)
-
-```
-
-```{r}
+```{r, fig.cap="Model 2"}
 #Fit the PPP model
 fit_red2 <- ppm(parks_ppp ~ HFI + I(HFI^2)+ Elevation + I(Elevation^2), data = DATA)
 
 fit_red2
 ```
+
+Based on the model results, both HFI and Elevation show strong significance and explain occurrence of red fox data in both linear or quadratic terms. For understanding the fit of the model, we plot the model and red fox locations together by overlaying location data on the model plot.
 
 ```{r}
 #Plot the model predictions
@@ -463,21 +448,60 @@ plot(fit_red2,
 plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
 ```
 
+It can be noted that the red fox locations are captured well with yellow color in the background which is an indicator of high intensity area as predicted by the model. As the model seem to capture the red fox locations reasonably well, we then proceed with other diagnostics to validate the model and compare with other models to select the best.
+
+
+First we use the `diagnose.ppm` function to diagnose the given model based on residuals. The plot shows cumulative sum of raw residuals against x and y coordinates respectively. To the top right, we can see the residual plot of the cumulative sum of raw residuals against y coordinates. The residuals are showing a good fit in the intermediate y coordinates range and the negative high residuals for high and low coordinates indicates the model predictions are higher than actuals. The the bottom left is the residual plot of the cumulative sum of raw residuals against x coordinates. The model overall has a good fit as seen in the plot with residuals mostly within the dotted band and the prediction is low when compared to actual in the higher x coordinate zones.
+
+Overall, the model is providing a good fit in the intermediate x and y coordinate areas and has tendency to deviate in the high and low coordinate areas of BC.
+
 ```{r}
-#AIC(fitHFI); AIC(fitHFIexp); AIC(fitHFIquad); AIC(fit_for); AIC(fit_red)
-AIC(fit_red); AIC(fit_red2)
+#Calculate the residuals
+#res <- residuals(fit_red)
+
+#Visualise
+#plot(res, cols = "transparent",)
+
+#Due to error with residuals function for this data, diagnose.ppm is used instead
+diagnose.ppm(fit_red2)
+
 ```
 
-### Validate if we need GAM - 5. linear vs gam - table: evaluate, AIC, visualize
+
+
 
 ```{r}
 #Run the quadrat test
 quadrat.test(fit_red2, nx = 5, ny = 5)
 ```
 
+Additionally, we do a quadrat test on the model which uses a chi-squared test and we get a small p value that indicates the model has significant deviations. 
+
+We move on to assess this model deeply against a few other models and also investigate further to decide if this is the best choice among the models evaluated.
+
+
+## Model Selection and Validation
+
+With a model that fits the data identified,  we proceed to do a thorough validation of this model and also compare with a few other models to select the best one for our data.
+
+First, we start with a simple test evaluating the AIC score of both the models above which are model 1 and 2. The AIC scores are 10401.62 and 10403.57 respectively. We conclude that there is not a huge difference in terms of this score between the models. A likehood ratio tests also suggest, we cannot reject that one model is better than the other.
+
+As we are interested in a parsimonious model, between the two models the selected one is $Model 2$ which has only two covariates elevation and HFI.
+
+```{r}
+#AIC(fitHFI); AIC(fitHFIexp); AIC(fitHFIquad); AIC(fit_for); AIC(fit_red)
+AIC(fit_red); AIC(fit_red2)
+```
+```{r}
+#Likelihood ratio test
+anova(fit_red2,fit_red, test = "LRT")
+```
 
 
 ```{r}
+## Rhohat function for this data errors out as this has NA. But we use other functions
+## like funceffect and parres to validate each covariate.
+
 #Calculate the relative intensity as a function of elevation
 #rh_elev <- rhohat(fit_red2, DATA$Elevation)
 
@@ -503,12 +527,7 @@ quadrat.test(fit_red2, nx = 5, ny = 5)
 #     xlab = "HFI")
 ```
 
-Rho plots do not run due to NA error.
-     
-# using above, check the intensity.
-
-##Calculate partial residuals only for 2 covariates
-
+For the selected model $Model 2$, next we look at the partial residuals for each of the covariates using `parres' function which show the fitted effect of a covariate alongside the observed effect. 
 
 ```{r}
 #Calculate the partial residuals as a function of elevation
@@ -530,7 +549,9 @@ plot(par_res_HFI,
      main = "",
      xlab = "HFI")
 ```
+Based on the plot for HFI, we see that the model is capturing the patterns in the data really well. Looking at the plot for Elevation, the model is capturing the patterns in the data very well except for higher elevation. 
 
+Using `effectfun()`, we also look at the influence of individual covariates. This computes the intensity of a fitted point process model as a function of one of its covariates.
 
 ```{r}
 #Mean HFI
@@ -558,31 +579,10 @@ plot(hfi_effect,
      legend = FALSE,
      main = "Effect of HFI at mean elevation")
 ```
+Based on the plot, we can see that intensity of the model can be described well as a function of elevation and HFI.
 
+Though the model evaluation so far is very promising to select this model, we see that the intensity or occurrence of red fox at higher elevation is still not captured well. We try to evaluate first by adding a higher order polynomial for elevation but it results in convergence error. So, we compare with a non parametric alternative using an additive modelling framework like GAMs as it allows more flexibility using both `ppm` and `bs` functions. We call this as our `Model 3`.
 
-```{r}
-#Plot the model predictions
-plot(fit_red2,
-     se = FALSE,
-     superimpose = FALSE,log=TRUE,n=500,
-     main = "Estimated Red Fox intensity")
-
-#Overlay the red fox locations
-plot(parks_ppp,
-     pch = 16,
-     cex = 0.6,
-     cols = "white",
-     add = TRUE)
-plot(parks_ppp,
-     pch = 16,
-     cex = 0.5,
-     cols = "black",
-     add = TRUE)
-```
-
-```{r}
-diagnose.ppm(fit_red2)
-```
 
 ```{r}
 library(splines)
@@ -592,9 +592,11 @@ fit_smooth <- ppm(parks_ppp ~ bs(Elevation,12) + bs(HFI, 5), data = DATA, use.ga
 
 fit_smooth
 ```
+
+For a quick assessment, we compare the AIC score of both models and do a quadrat test to validate if one model is superior to the other. The resulting AIC score for the GAMs model is 10408.13 which is higher than the `Model 2`. Also the quadrat test indicates any one model is not superior to the other.
 ```{r}
 #Delta AIC
-AIC(fit_red2) - AIC(fit_smooth)
+AIC(fit_red2) 
 AIC(fit_smooth)
 ```
 ```{r}
@@ -617,27 +619,14 @@ plot(par_res_HFI,
      main = "",
      xlab = "HFI")
 ```
-Higher powers for elevation - error with convergence
+Additionally. the partial residuals as well show that the `Model 2` has captured the underlying data better and even in the higher elevation area, the output from `Model 3` is not convincing.
 
-
-```{r}
-#AIC(fitHFI);AIC(fit);AIC(fitElev);AIC(fitWater)
-```
-```{r}
-AIC(fit_red); AIC(fit_red2); AIC(fit_smooth)
-```
 
 ```{r}
 #Likelihood ratio test
-anova(fit_red2,fit_red, test = "LRT")
+anova(fit_red2,fit_smooth, test = "LRT")
 ```
-
-
-
-
-## model: Tablulate observations -4. table to summarize models - linear+quad, AIC
-
-## model: GAM - Table if necessary
+Based on the results above, we conclude `Model 2` as the winner to describe the red fox intensity in British Columbia.
 
 
 # Discussion: Provide a brief summary of your findings. Length: ca. 1 page.
