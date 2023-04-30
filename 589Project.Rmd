@@ -1,7 +1,7 @@
 ---
 title: "Red Foxes in BC: an Analysis of the Spatial Point Process"
 author: "Nowshaba Durrani, Ricky Heinrich, Viji Rajagopalan"
-date: "2023-04-09"
+date: "2023-04-30"
 output: 
   pdf_document: 
     extra_dependencies: ["float"]
@@ -22,6 +22,8 @@ library(maptools)
 ```
 
 # Introduction
+
+Red Foxes (Scientific Name - Vulpes Vulpes) are a widespread animal in Canada, and are present in British Columbia. In the Global Biodiversity Information Facility (GBIF) database, there are approximately 640,000+ geo-references records for this species around the world, and `r n_row` number of entries are classified as from British Columbia. According to the Canadian Wildlife Federation (CWF), farmers used to regard red foxes as pests, as they would steal chickens. This might suggest that they hang around farms and human activity to take advantage of food sources. As well, the CWF says that they "prefer open fields", which suggests that they are more likely to be found in areas with less forest cover. We are interested in finding out if the occurrence of red fox data agrees with these claims, and if there are more factors that affect their presence. Treating the occurrence of red foxes as a point process, we will investigate its characteristics and attempt to model its intensity.
 
 ```{r}
 #occ_count() # occurance count for all the species in GBIF (Global Biodiversity Information Facility) - rgbif
@@ -61,8 +63,6 @@ data.sp_trans <- spTransform(dat.sp, new_crs)
 #plot(data.sp_trans, main = "Locations in BC", cex = 0.8, col ="blue")
 ```
 
-For our Data 589 project, we have selected Red Fox (Scientific Name - Vulpes Vulpes) to do the analysis. In the GBIF database they have approximately, 640,000+ geo-references records for this species around the world, however for this project we have selected to do the analysis of the occurance of Red Fox in BC only. So with the above function we have fetched the information for British Columbia only in `r n_col` columns and `r n_row` number of entries.
-
 ```{r warning=FALSE, fig.cap = "Occurence of Red Foxes in BC"}
 parks_ppp <- ppp(x = data.sp_trans@coords[,1], # X coordinates
                     y = data.sp_trans@coords[,2], # Y coordinates
@@ -70,6 +70,7 @@ parks_ppp <- ppp(x = data.sp_trans@coords[,1], # X coordinates
                     )
 
 col_pal <- c("maroon")
+# FIGURE 1
 plot(parks_ppp,
      main = "",
      cex = 0.9,
@@ -80,37 +81,31 @@ plot(parks_ppp,
 
 ```
 
-Here we have plotted all the occurrences of Red Fox in the BC region and we can see that the species are scattered in the region specially in the upper and middle part of the province. Now we will be exploring what is contributing to the occurrences of the species in the specific places based on various factors like `Elevation`, `Distance to Water`, `Forest Cover`, `HFI`, etc.
 
 # Methods
 
-The data comes from the Global Biodiversity Information Facility (GBIF) databases. We used the package `rgbif` to access the 'Vulpes Vulpes' data from R directly, sorting by instances occuring in BC. We've extracted the longitude and latitude data from this, and converted it appropriately using the `sp` package. 
+The data comes from the GBIF databases. We used the package `rgbif` to access the 'Vulpes Vulpes' data from R directly, sorting by instances occurring in BC. We've extracted the longitude and latitude data from this, and converted it appropriately using the `sp` package. 
 
-Our second source of data contained the BC Window object, as well as possible covariate data: `Elevation`, `Forest Cover`, Human Footprint Inventory (`HFI`) and `Distance to Water`.
+Our second source of data contained the BC Window object, as well as possible covariate data: `Elevation`, `Forest Cover`,`HFI` and `Distance to Water`.
 
-We used the package `spatstat` package functions mainly. Other supporting libraries for spatial data used are `maptools`, `sp` and `sf`. First we used `ppp` function to build a point pattern process object with the converted coordinates of the Red Fox locations from the GBIF data and the window from our second data source. 
+We mainly used the `spatstat` package functions to conduct our analyses. Other supporting libraries for spatial data used are `maptools`, `sp` and `sf`. First we used `ppp` function to build a point pattern process object with the converted coordinates of the Red Fox locations from the GBIF data and the window from our second data source. 
 
-To conduct first moment analysis, we used functions from the aforementioned `spatstat` package. We did a quadrat test as well as hotspot analysis to gain insight into the homogeneity assumption of the point process.
-
-For second moment analysis, we looked into Ripley's K-function and pair correlation function using functions from `spatstat`. This provides us with insight into possible clustering tendencies of the point process.
+To conduct first moment analysis, we used functions from the aforementioned `spatstat` package. We did a quadrat test as well as hotspot analysis to gain insight into the homogeneity assumption of the point process. For second moment analysis, we looked into Ripley's K-function and pair correlation function using functions from `spatstat`. This provides us with insight into possible clustering tendencies of the point process.
 
 Next we looked into the relationship of the intensity with each covariate. For smoothing estimate of the 4 covariates, `rhohat` function was used which helped us to see the relationship between red fox occurrence and each of the covariates. We used correlation function to study the correlation or collinearity of the covariates. Simple models with each of the covariates is first fit and based on the model results and the relationship of covariates with red fox data, we proceeded to fit models with a combination of covariates.
 
-Fitted models are then visualized using `plot` function. We investigated patters in the residuals using `diagnose` function and the partial residuals with each of the covariate is studied using `parres` function to understand the fit of each covariate in the model. 
+Fitted models were then visualized using `plot` function. We investigated patters in the residuals using `diagnose` function and the partial residuals with each of the covariate is studied using `parres` function to understand the fit of each covariate in the model. 
 
-`splines` package was used to build a GAMs model using functions `ppm` from spatstat package along with `bs` function that generates a basis matrix for representing the family of piecewise polynomials. The purpose was to build a non-parametric model for the data. This model was also diagnosed using techniques mentioned above.
+The `splines` package was used to build a GAMs model using functions `ppm` from spatstat package along with `bs` function that generates a basis matrix for representing the family of piecewise polynomials. The purpose was to build a non-parametric model for the data. This model was also diagnosed using techniques mentioned above.
 
 We then assessed the models with `quadrat.test` and `anova` functions to understand any significant deviates from given occurrences and compare and contrast the models. Using `effectfun()`, we also looked at the influence of individual covariates. This computes the intensity of a fitted point process model as a function of one of its covariates. Using AIC as model metric and considering model parsimony and simplicity, we selected the final model for the red fox data.
 
 
-
-# Results
-
-## Exploratory Analysis (First Moment till Covariates & basic individual models)
+# Exploratory Analysis
 
 ## First Moment Analysis
 
-We start with investigating whether the occurence of red foxes in BC seems homogeneous, as it will inform our steps to define the intensity. We have conducted a quadrat test of homogeneity with both 5 x 5 and 10 x 10 quadrats. These quadrats are shown in Figure 2, where we can visually tell that the intensity in each quadrats are not the same. The quadrat test for both the 5 x 5 and the 10 x 10 quadrats provide a p-value of 2.2e-16, confirming that the varied intensities are not due to chance alone, but rather due to an inhomogeneous point process. 
+We start with investigating whether the occurrence of red foxes in BC seems homogeneous, as it will inform our steps to define the intensity. We have conducted a quadrat test of homogeneity with both 5 x 5 and 10 x 10 quadrats. These quadrats are shown in Figure 2, where we can visually tell that the intensity in each quadrats are not the same. The quadrat test for both the 5 x 5 and the 10 x 10 quadrats provide a p-value of 2.2e-16, confirming that the varied intensities are not due to chance alone, but rather due to an inhomogeneous point process. 
 
 
 ```{r}
@@ -125,8 +120,7 @@ Q10 <- quadratcount(parks_ppp,
 ```
 
 ```{r, fig.cap = "Quadrat counts of Red Fox occurences, left 5x5, right 10x10", eval=F}
-
-#Plot the output 
+# FIGURE 2
 par(mfrow=c(1,2))
 plot(parks_ppp,
      pch = 12,
