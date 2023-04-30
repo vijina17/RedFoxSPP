@@ -381,7 +381,7 @@ We see that no covariate is strongly correlated with another, and so we can move
 
 From our assessment on individual covariates, we see that there is a non-linear relationship between the covariates and the red fox point data. Based on this knowledge, we move forward to fit the first base model with covariates that are showing strong trends with red fox data and also of research interest. For this purpose, the selected covariates are 1. `Elevation` 2. `HFI` and 3. `Forest Cover`. 
 
-We built the model with the linear and quadratic terms of covariates $Elevation$, $HFI$ and $Forest$. We call this model as `Model 1`.
+We built the model with the linear and quadratic terms of covariates `Elevation`, `HFI` and `Forest Cover`. We call this model as `Model 1`.
 
 ```{r fig.cap="Model 1 Details"}
 #Fit the PPP model
@@ -389,9 +389,9 @@ fit_red <- ppm(parks_ppp ~ Forest + I(Forest^2) + HFI + I(HFI^2)+ Elevation + I(
 fit_red
 ```
 
-The results indicate that covariates $HFI$ and $Elevation$ show strong significance and explain occurrence of red fox data in both linear and quadratic terms. Though `Forest Cover` showed non-linear relationship in second moment analysis, in this combined model with other covariates, its not significant.
+The results indicate that covariates `HFI` and `Elevation` show strong significance and explain occurrence of red fox data in both linear and quadratic terms. Though `Forest Cover` showed non-linear relationship in second moment analysis, in this combined model with other covariates, its not significant.
 
-As our next step, we drop the covariate $Forest$ from the model and build the next model with $HFI$ and $`Elevation`$ with linear and quadratic terms. We call this as `Model 2`.
+As our next step, we drop the covariate `Forest Cover` from the model and build the next model with `HFI` and `Elevation` with linear and quadratic terms. We call this as `Model 2`.
 
 
 ```{r, fig.cap="Model 2"}
