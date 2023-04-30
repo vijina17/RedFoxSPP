@@ -2,11 +2,13 @@
 title: "Red Foxes in BC: an Analysis of the Spatial Point Process"
 author: "Nowshaba Durrani, Ricky Heinrich, Viji Rajagopalan"
 date: "2023-04-09"
-output: pdf_document
+output: 
+  pdf_document: 
+    extra_dependencies: ["float"]
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = F,fig.width=8, fig.height=6, warning = F, cache = T, message = F)
+knitr::opts_chunk$set(echo = F,fig.width=8, fig.height=6, warning = F, cache = T, message = F,fig.pos = "H", out.extra = "", fig.align = 'center')
 ```
 
 
@@ -103,7 +105,6 @@ Next we looked into the relationship of the intensity with each covariate.
 
 ## First Moment Analysis
 
-### Quadratcount
 We start with investigating whether the occurence of red foxes in BC seems homogeneous, as it will inform our steps to define the intensity. We have conducted a quadrat test of homogeneity with both 5 x 5 and 10 x 10 quadrats. These quadrats are shown in Figure 2, where we can visually tell that the intensity in each quadrats are not the same. The quadrat test for both the 5 x 5 and the 10 x 10 quadrats provide a p-value of 2.2e-16, confirming that the varied intensities are not due to chance alone, but rather due to an inhomogeneous point process. 
 
 
@@ -160,9 +161,8 @@ quadrat.test(Q10)
 ```
 
 
-### Hot spot analysis
 
-As the next step, we investigate analyze for any hot spots in the occurences of red foxes. In Figure 3, we can see that hotspots appear scattered around the province.
+As the next step, we investigate analyze for any hot spots in the occurences of red foxes. In Figure 3, we can see that hotspots appear scattered around the province. It seems like the highest densities of red fox occurences are more inland, but spread across the province.
 
 ```{r fig.cap = "Hotspot of Red Foxes"}
 # Estimate R
@@ -188,7 +188,6 @@ pvals <- eval.im(pchisq(LR,
 
 ## 2nd Moment Analysis
 
-### Ripley's K function
 Ripley's K-function provides information on whether there are significant deviations from independence between points. Taking into account that the intensity of red fox occurences appear inhomogeneous, we can see in Figure 4 that there is some evidence of clustering up to a certain distance, as the black line, indicating the observed data, is separate from the 95% confidence bands of the values expected with no clustering. This suggests that the relationship between points may be due to effects between points rather than relationship with covariates. [CHECK THIS CLAIM ?] 
 
 
@@ -219,9 +218,6 @@ plot(E_fox, lwd = 2, main = "")
 ```
 
 
-
-### Pair correlation function
-
 To get a sense of the distances for which clustering occurs, we used the pair correlation function. Figure 5 shows evidence for clustering at distances smaller than around 23 000m, or 23km but after that the observed values are not significantly different that those expected from a random spatial process.
 
 
@@ -232,7 +228,7 @@ To get a sense of the distances for which clustering occurs, we used the pair co
 # estimate a strickly pos density
 lambda_pos <- density(parks_ppp,sigma=bw.ppl,positive=TRUE)
 # estimating with bootstraped ci
-pcf_fox <- envelope(parks_ppp, pcfinhom, simulate = expression(rpoispp(lambda_pos)),rank = 1, nsim = 19)
+pcf_fox <- envelope(parks_ppp, pcfinhom, simulate = expression(rpoispp(lambda_pos)),rank = 1, nsim = 19,verbose = F)
 # Default plot method
 #plot(pcf_fox, lwd = 2)
 
@@ -245,79 +241,106 @@ plot(pcf_fox, main = "")
 
 ## Relationship with Covariates 
 
-Our data includes 4 covariates which we are exploring: the elevation, the forest cover, the human footprint inventory (HFI), and the distance to water. Given our research questions, we will start with investigating the HFI and the forest cover.
+Our data includes 4 covariates which we are exploring: the elevation, the forest cover, the human footprint inventory (HFI), and the distance to water. Given our research questions, we were expecting HFI and forest cover to have a relationship, but we have also investigated the two other covariates.
 
-### Plotting Red Fox wrt HFI, Forest, Elevation, Distance to Water
 
 ```{r, warning=F, fig.cap="Red Fox plotting in various covariets"}
 par(mfrow=c(2,2))
 
-plot(DATA$HFI, box = F, par(cex.main = 2), main = "HFI")
-plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
+plot(DATA$HFI, box = F, par(cex.main = 1), main = "HFI")
+plot(parks_ppp,
+pch = 16,
+cex = 0.6,
+cols = "white",
+add = TRUE)
+plot(parks_ppp,
+pch = 16,
+cex = 0.5,
+cols = "black",
+add = TRUE)
 
-plot(DATA$Forest, box = F, par(cex.main = 2), main = "Forest")
-plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
+plot(DATA$Forest, box = F, par(cex.main = 1), main = "Forest")
+plot(parks_ppp,
+pch = 16,
+cex = 0.6,
+cols = "white",
+add = TRUE)
+plot(parks_ppp,
+pch = 16,
+cex = 0.5,
+cols = "black",
+add = TRUE)
 
-plot(DATA$Elevation, box = F, par(cex.main = 2), main = "Elevation")
-plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
+plot(DATA$Elevation, box = F,  main = "Elevation")
+plot(parks_ppp,
+pch = 16,
+cex = 0.6,
+cols = "white",
+add = TRUE)
+plot(parks_ppp,
+pch = 16,
+cex = 0.5,
+cols = "black",
+add = TRUE)
 
 plot(DATA$Dist_Water, box = F, par(cex.main = 2), main = "Distance from Water")
-plot(parks_ppp, pch = 16, cex = 0.9, col = "green",use.marks = F, add = T)
+plot(parks_ppp,
+pch = 16,
+cex = 0.6,
+cols = "white",
+add = TRUE)
+plot(parks_ppp,
+pch = 16,
+cex = 0.5,
+cols = "black",
+add = TRUE)
 ```
-Here we see the red fox is seen more in the averagely densed population area and near highly densed forest area. In case of elevation, red foxes are seen in moverately elevated area and where the distance to water is low to medium. 
+
+In Figure 6, we can see the observed data over the values of the covariates, and get a first idea of possible relationships. We see the red fox is seen more in the averagely densed population area and near highly densed forest area. In case of elevation, red foxes are seen in moderately elevated area and where the distance to water is low to medium. 
 
 ### Smoothing Estimate of the 4 Covariates Transformation
 
-```{r}
-
-par(mfrow=c(3,3))
-
-#Estimate Rho for HFI
+```{r fig.cap="Effect of HFI on intensity of red foxes"}
 rho_HFI <- rhohat(parks_ppp, DATA$HFI)
+par(mfrow=c(1,2))
+#Estimate Rho for HFI
 plot(rho_HFI,
      main = "",
      xlab = "HFI")
 plot(rho_HFI,
      main = "",
-     xlab = "HFI", xlim = c(0,0.4))
+     xlab = "HFI", xlim = c(0,0.8))
+```
+
+```{r fig.cap= "Effect of forest cover, elevation, and distance to water on intensity of red foxes"}
 
 #Estimate Rho for Forest Cover
 rho_forest <- rhohat(parks_ppp, DATA$Forest)
-plot(rho_forest,
-     main = "",
-     xlab = "Forest cover")
 
 #Estimate Rho for elevation
 rho_elev <- rhohat(parks_ppp, DATA$Elevation)
-plot(rho_elev,
-     main = "",
-     xlab = "Elevation")
-plot(rho_elev,
-     main = "",
-     xlab = "Elevation", xlim = c(0,3000))
 
 #Estimate Rho for water distance
 rho_water <- rhohat(parks_ppp, DATA$Dist_Water)
+
+par(mfrow=c(1,3))
+plot(rho_forest,
+     main = "",
+     xlab = "Forest cover")
+#plot(rho_elev,main = "",xlab = "Elevation")
+plot(rho_elev,
+     main = "",
+     xlab = "Elevation", xlim = c(0,max(DATA$Elevation)))
 plot(rho_water,
      main = "",
      xlab = "Distance from Water")
 ```
 
-In the first figure for HFI, we could be fooled into thinking that there is no relationship up to around HFI = 0.4, until which it seems like an exponential relationship. However, zooming in from HFI 0 to 0.4, we see that the confidence bands don't intersect at all with the red line, which is the expected value given no relationship. This relationship appears non-linear and possibly exponential, where the greatest intensity of observed red foxes occurs at high HFIs. This relationship was expected, as our dataset is not exhaustive but rather is crowdsourced, and naturally foxes are more likely to be noticed by humans in spaces with higher HFIs.
 
-Regarding forest cover we can observe that there seems to be non-linear relationship between forest cover and number of red foxs observed. The observance increase with increase in forest cover at intermediate coverage and then it decreases. Next is to observe if there is any correlation between the covariates (collinearity in the covariates dataset). This is necessary to avoid any identifiability issues in modeling the data.
+In the left plot of Figure 7,  we could be fooled into thinking that there is no relationship between HFI and intensity of red foxes up to around HFI = 0.4, until which it seems like an exponential relationship. However, zooming in from HFI 0 to 0.8, we see that the confidence bands don't intersect at all with the red line, which is the expected value given no relationship. This relationship appears non-linear and possibly exponential, where the greatest intensity of observed red foxes occurs at high HFIs. This relationship was expected, as our dataset is not exhaustive but rather is crowdsourced, and naturally foxes are more likely to be observed by humans in spaces with higher HFIs.
 
-Regarding the elevation, we see that there seems to be no relationship but after taking a closer look we see that there is non-linear relationship between elevation and the occurance of red foxes. The relationship appears to be non-linear as the graph is showing different results for different elevation and we cannot see any type of specific pattern from the same. In case of Distance to Water, we can observe from the above figure with red fox occurance with Distance to Water that  there is non liner relationship between the two. 
+In Figure 8, we see that there seems to be non-linear relationship between forest cover and number of red foxes observed. The observance increase with increase in forest cover at intermediate coverage and then it decreases. We also see that there is non-linear relationship with elevation. The relationship appears to be non-linear as the graph is showing different results for different elevation and we cannot see any type of specific pattern from the same. In case of Distance to Water, we don't observe a significant deviation in observed red foxes than expected by chance, indicating that it is not a useful covariate to model.  
 
-```{r}
-par(mfrow=c(2,2))
-plot(log(rho_HFI$rho))
-plot(log(rho_forest$rho))
-plot(log(rho_elev$rho))
-plot(log(rho_water$rho))
-```
-
-If we plot the log of the rho, we get a line that could be reasonably interpreted as linear for HFI however the plots for other covariets deosnt seem linear. 
 
 ### Fit models for the covariets
 
@@ -397,20 +420,7 @@ cor.im(DATA$Forest, DATA$HFI, DATA$Elevation, DATA$Dist_Water, use = "complete.o
 We see that no covariate is strongly collinear with another, and so we can move on without taking so into account and treating the covariates as independent.
 
 
-```{r}
-#plot(DATA$HFI$v ~ DATA$Forest$v,
-#     xlab = "HFI",
-#     ylab = "Forest",
-#     pch = 16,
-#     cex = 0.3,
-#     col = "#046C9A")
-```
-
-
-### 3. Finalize and summarize about other two variables - elevation and water.
-Elevation is significant so that is included in the model.
-
-##End of EDA and covariates analysis
+## End of EDA and covariates analysis
 
 ## Model Fitting
 
