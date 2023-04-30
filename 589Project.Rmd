@@ -77,7 +77,7 @@ plot(parks_ppp,
      col ="white",
      border = 3,
      cols = col_pal,
-     par(bg = "grey90",cex.main = 1.6))
+     par(cex.main = 1.6))
 
 ```
 
