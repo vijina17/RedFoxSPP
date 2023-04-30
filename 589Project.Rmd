@@ -667,6 +667,5 @@ add = TRUE)
 
 # References: Include references to all necessary literature.
 
-1. Data: GBIF.org (09 April 2023) GBIF Occurrence Download  https://doi.org/10.15468/dl.p6tsaa
-2. Research topics: https://cwf-fcf.org/en/resources/encyclopedias/fauna/mammals/red-fox.html
-3. https://www.gbif.org/species/5219243
+1. Data: https://www.gbif.org/species/5219243, accessed through `rgbif` package
+2. Research topics: Canadian Wildlife Federation, https://cwf-fcf.org/en/resources/encyclopedias/fauna/mammals/red-fox.html
