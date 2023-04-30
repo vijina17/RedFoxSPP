@@ -88,15 +88,20 @@ The data comes from the Global Biodiversity Information Facility (GBIF) database
 
 Our second source of data contained the BC Window object, as well as possible covariate data: `Elevation`, `Forest Cover`, Human Footprint Inventory (`HFI`) and `Distance to Water`.
 
-We used the package `spatstat` to build a `ppp` object with the converted coordinates of the Red Fox locations from the GBIF data and the window from our second data source. 
+We used the package `spatstat` package functions mainly. Other supporting libraries for spatial data used are `maptools`, `sp` and `sf`. First we used `ppp` function to build a point pattern process object with the converted coordinates of the Red Fox locations from the GBIF data and the window from our second data source. 
 
 To conduct first moment analysis, we used functions from the aforementioned `spatstat` package. We did a quadrat test as well as hotspot analysis to gain insight into the homogeneity assumption of the point process.
 
 For second moment analysis, we looked into Ripley's K-function and pair correlation function using functions from `spatstat`. This provides us with insight into possible clustering tendencies of the point process.
 
-Next we looked into the relationship of the intensity with each covariate. 
+Next we looked into the relationship of the intensity with each covariate. For smoothing estimate of the 4 covariates, `rhohat` function was used which helped us to see the relationship between red fox occurrence and each of the covariates. We used correlation function to study the correlation or collinearity of the covariates. Simple models with each of the covariates is first fit and based on the model results and the relationship of covariates with red fox data, we proceeded to fit models with a combination of covariates.
 
-For smoothing estimate of the 4 covariates transformation rhohat() function was used which helped us to see the relationship between red fox occurrence and each covariate.
+Fitted models are then visualized using `plot` function. We investigated patters in the residuals using `diagnose` function and the partial residuals with each of the covariate is studied using `parres` function to understand the fit of each covariate in the model. 
+
+`splines` package was used to build a GAMs model using functions `ppm` from spatstat package along with `bs` function that generates a basis matrix for representing the family of piecewise polynomials. The purpose was to build a non-parametric model for the data. This model was also diagnosed using techniques mentioned above.
+
+We then assessed the models with `quadrat.test` and `anova` functions to understand any significant deviates from given occurrences and compare and contrast the models. Using `effectfun()`, we also looked at the influence of individual covariates. This computes the intensity of a fitted point process model as a function of one of its covariates. Using AIC as model metric and considering model parsimony and simplicity, we selected the final model for the red fox data.
+
 
 
 # Results
