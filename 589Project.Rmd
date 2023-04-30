@@ -316,10 +316,14 @@ fitWater
 We have fitted 6 models and we came to observe that `HFI`, exp(HFI), `Forest Cover`, I(Forest^2) and `Elevation` seems to be highly significant however `Distance to Water` seems to be in-significant for the occurrence of red foxes in the BC area. When we check the AIC values and it is seen that `HFI` and `HFI`(exp) has lower values so we can consider these models to be a better fit.
 
 ```{r}
-#AIC(fitHFI); AIC(fitHFIexp); AIC(fit); AIC(fitElev); AIC(fitWater)
+HFIAIC <- AIC(fitHFI)
+HFIexpAIC <- AIC(fitHFIexp)
+ForestAIC <- AIC(fit)
+ElevAIC <- AIC(fitElev)
+WaterAIC <- AIC(fitWater)
 
 # Create table
-table <- data.frame(Model = c("HFI", "HFI(Exp)", "Forest Cover", "Elevation", "Dist to Water" ), AIC = c(AIC(fitHFI), AIC(fitHFIexp), AIC(fit), AIC(fitElev), AIC(fitWater)))
+table <- data.frame(Model = c("HFI", "HFI(Exp)", "Forest Cover", "Elevation", "Dist to Water"), AIC = c(HFIAIC, HFIexpAIC, ForestAIC, ElevAIC, WaterAIC))
 
 # Print table
 print(table)
