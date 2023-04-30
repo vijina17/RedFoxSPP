@@ -186,7 +186,7 @@ pvals <- eval.im(pchisq(LR,
 
 ## 2nd Moment Analysis
 
-Ripley's K-function provides information on whether there are significant deviations from independence between points. Taking into account that the intensity of red fox occurrences appear inhomogeneous, we can see in Figure 4 that there is some evidence of clustering up to a certain distance, as the black line, indicating the observed data, is separate from the 95% confidence bands of the values expected with no clustering. This suggests that the relationship between points may be due to effects between points rather than relationship with covariates. [CHECK THIS CLAIM ?] 
+Ripley's K-function provides information on whether there are significant deviations from independence between points. Taking into account that the intensity of red fox occurrences appear inhomogeneous, we can see in Figure 4 that there is some evidence of clustering up to a certain distance, as the black line, indicating the observed data, is separate from the 95% confidence bands of the values expected with no clustering.
 
 
 ```{r fig.cap="Ripley's K function with border correction assuming homogeneity", eval=F}
@@ -285,9 +285,9 @@ plot(rho_water,
 ```
 
 
-In the left plot of Figure 7,  we could be fooled into thinking that there is no relationship between `HFI` and intensity of red foxes up to around `HFI` = 0.4, until which it seems like an exponential relationship. However, zooming in from `HFI` 0 to 0.8, we see that the confidence bands don't intersect at all with the red line, which is the expected value given no relationship. This relationship appears non-linear and possibly exponential, where the greatest intensity of observed red foxes occurs at high `HFI`s. This relationship was expected, as our dataset is not exhaustive but rather is crowdsourced, and naturally foxes are more likely to be observed by humans in spaces with higher `HFI`s.
+In the left plot of Figure 6,  we could be fooled into thinking that there is no relationship between `HFI` and intensity of red foxes up to around `HFI` = 0.4, until which it seems like an exponential relationship. However, zooming in from `HFI` 0 to 0.8, we see that the confidence bands don't intersect at all with the red line, which is the expected value given no relationship. This relationship appears non-linear and possibly exponential, where the greatest intensity of observed red foxes occurs at high `HFI`s. This relationship was expected, as our dataset is not exhaustive but rather is crowdsourced, and naturally foxes are more likely to be observed by humans in spaces with higher `HFI`s.
 
-In Figure 8, we see that there seems to be non-linear relationship between `Forest Cover` and number of red foxes observed. The observance increases with increase in `Forest Cover` at intermediate coverage and then it decreases. We also see that there is non-linear relationship with `Elevation`. The relationship appears to be non-linear as the graph is showing different results for different `Elevation` and we cannot see any type of specific pattern from the same. In case of `Distance to Water`, we don't observe a significant deviation in observed red foxes than expected by chance, indicating that it is not a useful covariate to model.  
+In Figure 7, we see that there seems to be non-linear relationship between `Forest Cover` and number of red foxes observed. The observance increases with increase in `Forest Cover` at intermediate coverage and then it decreases. We also see that there is non-linear relationship with `Elevation`. The relationship appears to be non-linear as the graph is showing different results for different `Elevation` and we cannot see any type of specific pattern from the same. In case of `Distance to Water`, we don't observe a significant deviation in observed red foxes than expected by chance, indicating that it is not a useful covariate to model.  
 
 
 ### Fit models for the covariets
@@ -413,9 +413,9 @@ plot(parks_ppp, pch = 16, cex = 1, col = "white",use.marks = F, add = T)
 plot(parks_ppp, pch = 16, cex = 0.8, col = "black",use.marks = F, add = T)
 ```
 
-It can be noted that the red fox locations are captured well with yellow color in the background which is an indicator of high intensity area as predicted by the model. As the model seem to capture the red fox locations reasonably well, we then proceed with other diagnostics to validate the model and compare with other models to select the best.
+We see in Figure 8 that the red fox locations are captured well with yellow color in the background which is an indicator of high intensity area as predicted by the model. As the model seem to capture the red fox locations reasonably well, we then proceed with other diagnostics to validate the model and compare with other models to select the best.
 
-First we use the `diagnose` function to validate `Model 2` based on residuals. To the top right, we can see the residual plot of the cumulative sum of raw residuals against y coordinates. The residuals are showing a good fit in the intermediate y coordinates range and the negative high residuals for high and low coordinates indicates the model predictions are higher than actuals. The the bottom left is the residual plot of the cumulative sum of raw residuals against x coordinates. The model overall has a good fit as seen in the plot with residuals mostly within the dotted band and the prediction is low when compared to actual in the higher x coordinate zones.
+First we use the `diagnose` function to validate `Model 2` based on residuals. To the top right of Figure 9, we can see the residual plot of the cumulative sum of raw residuals against y coordinates. The residuals are showing a good fit in the intermediate y coordinates range and the negative high residuals for high and low coordinates indicates the model predictions are higher than actuals. The the bottom left is the residual plot of the cumulative sum of raw residuals against x coordinates. The model overall has a good fit as seen in the plot with residuals mostly within the dotted band and the prediction is low when compared to actual in the higher x coordinate zones.
 
 Overall, the model is providing a good fit in the intermediate x and y coordinate areas and has tendency to deviate in the high and low coordinate areas of BC.
 
@@ -510,7 +510,7 @@ plot(par_res_HFI,
      xlab = "HFI")
 ```
 
-Based on the plot for `HFI`, we see that the model is capturing the patterns in the data really well. Looking at the plot for `Elevation`, the model is capturing the patterns in the data very well except for higher `Elevation`. 
+Based on the plot for `HFI`, on the right side of Figure 10, we see that the model is capturing the patterns in the data really well. Looking at the plot for `Elevation` on the left side, the model is capturing the patterns in the data very well except for higher `Elevation`. 
 
 We compute the intensity of a fitted point process model as a function of one of its covariates to look at the influence of the individual covariates.
 
@@ -540,7 +540,7 @@ plot(hfi_effect,
      main = "")
 ```
 
-Based on the plot, we can see that intensity of the model can be described well as a function of `Elevation` and `HFI`.
+From Figure 11, we can see that intensity of the model can be described well as a function of `Elevation` and `HFI`.
 
 Though the `Model 2` evaluation so far is very promising, we see that the intensity or occurrence of red fox at higher `Elevation` is not captured well. We try to improve it by adding a higher order polynomial for `Elevation` but it results in convergence error. So, we compare with a non parametric alternative using an additive modelling framework (GAMs) as it allows more flexibility. We call this as our `Model 3`.
 
@@ -581,14 +581,14 @@ plot(par_res_HFI,
      xlab = "HFI")
 ```
 
-Additionally, the partial residuals as well show that the `Model 2` has captured the underlying data better and even in the higher `Elevation` area, the output from `Model 3` is still not convincing.
+Additionally, the partial residuals of `Model 3` shown in Figure 12 don't look particularly well. Relatively, `Model 2` has captured the underlying data better and even in the higher `Elevation` area, the output from `Model 3` is still not convincing.
 
 ```{r}
 #Likelihood ratio test
 anova(fit_red2,fit_smooth, test = "LRT")
 ```
 
-Based on the results above, we conclude `Model 2` as the winner to describe the red fox intensity in British Columbia.
+Since the LRT test p-value is above a significance level of 0.05, we can conclude that the additional complexity brought on by `Model 3` is not warranted. We conclude `Model 2` as the winner to describe the red fox intensity in British Columbia.
 
 # Discussion:
 
