@@ -21,9 +21,7 @@ library(spatstat)
 library(maptools)
 ```
 
-# Introduction
 
-Red Foxes (Scientific Name - Vulpes Vulpes) are a widespread animal in Canada, and are present in British Columbia. In the Global Biodiversity Information Facility (GBIF) database, there are approximately 640,000+ geo-references records for this species around the world, and `r n_row` number of entries are classified as from British Columbia. According to the Canadian Wildlife Federation (CWF), farmers used to regard red foxes as pests, as they would steal chickens. This might suggest that they hang around farms and human activity to take advantage of food sources. As well, the CWF says that they "prefer open fields", which suggests that they are more likely to be found in areas with less forest cover. We are interested in finding out if the occurrence of red fox data agrees with these claims, and if there are more factors that affect their presence. Treating the occurrence of red foxes as a point process, we will investigate its characteristics and attempt to model its intensity.
 
 ```{r}
 #occ_count() # occurance count for all the species in GBIF (Global Biodiversity Information Facility) - rgbif
@@ -36,8 +34,6 @@ n_col <- ncol(redFoxList$data)
 #n_row
 #n_col
 ```
-
-
 
 ```{r}
 
@@ -63,7 +59,11 @@ data.sp_trans <- spTransform(dat.sp, new_crs)
 #plot(data.sp_trans, main = "Locations in BC", cex = 0.8, col ="blue")
 ```
 
-```{r warning=FALSE, fig.cap = "Occurence of Red Foxes in BC"}
+# Introduction
+
+Red Foxes (Scientific Name - Vulpes Vulpes) are a widespread animal in Canada, and are present in British Columbia. In the Global Biodiversity Information Facility (GBIF) database, there are approximately 640,000+ geo-references records for this species around the world, and `r n_row` number of entries are classified as from British Columbia. According to the Canadian Wildlife Federation (CWF), farmers used to regard red foxes as pests, as they would steal chickens. This might suggest that they hang around farms and human activity to take advantage of food sources. As well, the CWF says that they "prefer open fields", which suggests that they are more likely to be found in areas with less forest cover. We are interested in finding out if the occurrence of red fox data agrees with these claims, and if there are more factors that affect their presence. Treating the occurrence of red foxes as a point process, we will investigate its characteristics and attempt to model its intensity.
+
+```{r warning=FALSE, fig.height=5, fig.cap = "Occurence of Red Foxes in BC"}
 parks_ppp <- ppp(x = data.sp_trans@coords[,1], # X coordinates
                     y = data.sp_trans@coords[,2], # Y coordinates
                     window = as.owin( DATA[["Window"]]),# Observation window
@@ -162,7 +162,7 @@ quadrat.test(Q10)
 
 As the next step, we investigate for any hot spots in the occurrences of red foxes. In Figure 3, we can see that hotspots appear scattered and of moderately high density. It seems like these occurrences are more inland.
 
-```{r fig.cap = "Hotspot of Red Foxes"}
+```{r fig.height=5, fig.cap = "Hotspot of Red Foxes"}
 # Estimate R
 R <- bw.ppl(parks_ppp)
 
@@ -406,7 +406,7 @@ Based on the model results, both `HFI` and `Elevation` show strong significance 
 #Plot the model predictions
 plot(fit_red2,
      se = FALSE,
-     superimpose = FALSE,log=TRUE,n=500)
+     superimpose = FALSE,log=TRUE,n=500, main="")
 
 #Overlay the red fox locations
 plot(parks_ppp, pch = 16, cex = 1, col = "white",use.marks = F, add = T)
@@ -487,7 +487,7 @@ anova(fit_red2,fit_red, test = "LRT")
 #     xlab = "HFI")
 ```
 
-For the selected model `Model 2`, next we look at the partial residuals for each of the covariates showing the fitted effect of a covariate alongside the observed effect. 
+Next, next we look at the partial residuals of `Model 2` for each of the covariates, showing the fitted effect of a covariate alongside the observed effect. 
 
 ```{r fig.cap="Partial residuals for Model 2 covariates"}
 #Calculate the partial residuals as a function of elevation
@@ -514,7 +514,7 @@ Based on the plot for `HFI`, we see that the model is capturing the patterns in 
 
 We compute the intensity of a fitted point process model as a function of one of its covariates to look at the influence of the individual covariates.
 
-```{r fig.cap="Right: Elevation effect at mean HFI, Left: HFI effect at mean elevation}
+```{r fig.cap="Right: Elevation effect at mean HFI, Left: HFI effect at mean elevation"}
 #Mean HFI
 E_hfi <- mean(DATA$HFI)
 
@@ -555,7 +555,7 @@ fit_smooth
 
 For a quick assessment, we compare the AIC score of both models and do a quadrat test to validate if one model is superior to the other. The resulting AIC score for the GAMs model is 10408.13 which is higher than the `Model 2`. The quadrat test has a p-value greater than a significance value of 0.05 which tells us that any one model is not superior to the other.
 
-```{r}
+```{r include=F}
 #Delta AIC
 AIC(fit_red2) 
 AIC(fit_smooth)
