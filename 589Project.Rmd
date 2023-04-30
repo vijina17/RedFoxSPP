@@ -641,6 +641,22 @@ Based on the results above, we conclude `Model 2` as the winner to describe the 
 
 # Discussion: Provide a brief summary of your findings. Length: ca. 1 page.
 
+First look at the occurrence data of red fox on BC map showed that the species is spread across the province and look clustered in some places. First moments analysis clearly showed that the intensity of data is homogeneous and there are a few hot spots in the province. Second moment analysis using Ripley's K-function showed there is some clustering of the data but the pair correlation which focuses on contribution of all inter-point distances confirmed that there is no significant clustering in data (shows evidence for clustering at distances smaller than around 23 000m, or 23km but after that the observed values do not show clustering). Based on this, we conclude there is very little or no clustering in the occurrence of red fox.
+
+Analysis of covariates HFI, forest cover, elevation with this data shows the variables have a non-linear relationship with the data. The fourth covariate available to us is distance to water and this does not show promising relationship in our initial assessment plots. Individual models with all the covariates is created and studied. Distance to water is not significant and so is excluded from further analysis. We also discovered that there is no significant correlation between the variables and this allows us to combine them in further modeling the given red fox data.
+
+First combined model (Model 1) with forest, elevation and HFI is fitted with linear and quadratic terms and we discovered that forest is not a significant predictor. So, we removed forest and fitted the next model (Model 2) with elevation and HFI including linear and quadratic terms. For a good comparison, Model 3 is also fit which is a GAMs model. AIC scores from the three models are tabulated below. 
+
+|           | **3 covariates (Model 1)**   | **2 covariates (Model 2)** | **GAM w 2 covariates (Model 3)**   |
+|-----------|----------|-----------|----------|
+| **AIC** | 10401.62 |  10403.57  |  10408.13 |
+
+As seen above, Model 2 has the lowest AIC score and a quadrat test between all three models showed that not any one of the models is superior. We decide to select a parsimonious model and Model 2 is selected. The residual, partical residual and covariate effect plots support the goodness of fit for this model. They also reveal that there are opportunities for improvements with this model especially at high and low elevation points.
+
+Our research questions were 1. Are red fox occurrence present near human habitat and we see from the model that the answer is 'yes'. 2. Do they not like the forest cover? We are unable to conclude they do not and there is not significant relationship between red fox and this covariate. We also found there is significant relationship with elevation. 
+
+There are some interesting challenges and insights gathered during the analysis and modeling process and we would like to share to help with future research. The Rho plots and standard residuals plot for this data error out due to NAs in the data. The model 2 which is the selected model does not converge if higher order of elevation variables are included. GAM model is used as a comparison here and only limited tuning is performed in the interest of time. An in depth tuning in our opinion could help build a second model for this data.
+
 # References: Include references to all necessary literature.
 
 1. Data: GBIF.org (09 April 2023) GBIF Occurrence Download  https://doi.org/10.15468/dl.p6tsaa
