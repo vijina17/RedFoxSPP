@@ -61,7 +61,7 @@ data.sp_trans <- spTransform(dat.sp, new_crs)
 #plot(data.sp_trans, main = "Locations in BC", cex = 0.8, col ="blue")
 ```
 
-For our Data 589 project, we have selected Red Fox (Scientific Name - Vulpes Vulpes) to do the analysis. In the GBIF database they have approximately, 610,958+ georeferences records for this species around the world, however for this project we have selected to do the analysis of the occurance of Red Fox in BC only. So with the above function we have fetched the information for British Columbia only in `r n_col` columns and `r n_row` number of entries.
+For our Data 589 project, we have selected Red Fox (Scientific Name - Vulpes Vulpes) to do the analysis. In the GBIF database they have approximately, 640,000+ geo-references records for this species around the world, however for this project we have selected to do the analysis of the occurance of Red Fox in BC only. So with the above function we have fetched the information for British Columbia only in `r n_col` columns and `r n_row` number of entries.
 
 ```{r warning=FALSE, fig.cap = "Occurence of Red Foxes in BC"}
 parks_ppp <- ppp(x = data.sp_trans@coords[,1], # X coordinates
@@ -80,13 +80,13 @@ plot(parks_ppp,
 
 ```
 
-Here we have plotted all the occurrences of Red Fox in the BC region and we can see that the species are scattered in the region specially in the upper and middle part of the province. Now we will be exploring what is contributing to the occurrences of the species in the specific places based on various factors like elevation, close to water bodies, forests, human habitats, etc.
+Here we have plotted all the occurrences of Red Fox in the BC region and we can see that the species are scattered in the region specially in the upper and middle part of the province. Now we will be exploring what is contributing to the occurrences of the species in the specific places based on various factors like `Elevation`, `Distance to Water`, `Forest Cover`, `HFI`, etc.
 
 # Methods
 
 The data comes from the Global Biodiversity Information Facility (GBIF) databases. We used the package `rgbif` to access the 'Vulpes Vulpes' data from R directly, sorting by instances occuring in BC. We've extracted the longitude and latitude data from this, and converted it appropriately using the `sp` package. 
 
-Our second source of data contained the BC Window object, as well as possible covariate data: elevation, forest cover, Human Footprint Inventory (HFI) and distance to water.
+Our second source of data contained the BC Window object, as well as possible covariate data: `Elevation`, `Forest Cover`, Human Footprint Inventory (`HFI`) and `Distance to Water`.
 
 We used the package `spatstat` to build a `ppp` object with the converted coordinates of the Red Fox locations from the GBIF data and the window from our second data source. 
 
@@ -95,6 +95,8 @@ To conduct first moment analysis, we used functions from the aforementioned `spa
 For second moment analysis, we looked into Ripley's K-function and pair correlation function using functions from `spatstat`. This provides us with insight into possible clustering tendencies of the point process.
 
 Next we looked into the relationship of the intensity with each covariate. 
+
+For smoothing estimate of the 4 covariates transformation rhohat() function was used which helped us to see the relationship between red fox occurrence and each covariate.
 
 
 # Results
@@ -241,63 +243,11 @@ Figure 5 shows evidence for clustering at distances smaller than around 23 000m,
 
 ## Relationship with Covariates 
 
-Our data includes 4 covariates which we are exploring: the elevation, forest cover, human footprint inventory (HFI), and distance to water. Given our research questions, we expect HFI and forest cover to have a relationship with red fox occurrences, however we also investigate the other two covariates.
-
-[4 PLOTS MOVE TO APPENDING]
-```{r, warning=F, fig.cap="Red Fox plotting in various covariets"}
-par(mfrow=c(2,2))
-
-plot(DATA$HFI, box = F, par(cex.main = 1), main = "HFI")
-plot(parks_ppp,
-pch = 16,
-cex = 0.6,
-cols = "white",
-add = TRUE)
-plot(parks_ppp,
-pch = 16,
-cex = 0.5,
-cols = "black",
-add = TRUE)
-
-plot(DATA$Forest, box = F, par(cex.main = 1), main = "Forest")
-plot(parks_ppp,
-pch = 16,
-cex = 0.6,
-cols = "white",
-add = TRUE)
-plot(parks_ppp,
-pch = 16,
-cex = 0.5,
-cols = "black",
-add = TRUE)
-
-plot(DATA$Elevation, box = F,  main = "Elevation")
-plot(parks_ppp,
-pch = 16,
-cex = 0.6,
-cols = "white",
-add = TRUE)
-plot(parks_ppp,
-pch = 16,
-cex = 0.5,
-cols = "black",
-add = TRUE)
-
-plot(DATA$Dist_Water, box = F, main = "Distance from Water")
-plot(parks_ppp,
-pch = 16,
-cex = 0.6,
-cols = "white",
-add = TRUE)
-plot(parks_ppp,
-pch = 16,
-cex = 0.5,
-cols = "black",
-add = TRUE)
-```
+Our data includes 4 covariates which we are exploring: the `Elevation`, `Forest Cover`, human footprint inventory (`HFI`), and `Distance to Water`. Given our research questions, we expect `HFI` and `Forest Cover` to have a relationship with red fox occurrences, however we also investigate the other two covariates.
 
 
-```{r fig.cap="Effect of HFI on intensity of red foxes"}
+
+```{r fig.cap="Effect of `HFI` on intensity of red foxes"}
 # Smoothing Estimate of the 4 Covariates Transformation
 rho_HFI <- rhohat(parks_ppp, DATA$HFI)
 par(mfrow=c(1,2))
@@ -310,7 +260,8 @@ plot(rho_HFI,
      xlab = "HFI", xlim = c(0,0.8))
 ```
 
-```{r fig.cap= "Effect of forest cover, elevation, and distance to water on intensity of red foxes"}
+
+```{r fig.cap= "Effect of `Forest Cover`, `Elevation`, and `Distance to Water` on intensity of red foxes"}
 
 #Estimate Rho for Forest Cover
 rho_forest <- rhohat(parks_ppp, DATA$Forest)
@@ -335,9 +286,9 @@ plot(rho_water,
 ```
 
 
-In the left plot of Figure 7,  we could be fooled into thinking that there is no relationship between HFI and intensity of red foxes up to around HFI = 0.4, until which it seems like an exponential relationship. However, zooming in from HFI 0 to 0.8, we see that the confidence bands don't intersect at all with the red line, which is the expected value given no relationship. This relationship appears non-linear and possibly exponential, where the greatest intensity of observed red foxes occurs at high HFIs. This relationship was expected, as our dataset is not exhaustive but rather is crowdsourced, and naturally foxes are more likely to be observed by humans in spaces with higher HFIs.
+In the left plot of Figure 7,  we could be fooled into thinking that there is no relationship between `HFI` and intensity of red foxes up to around `HFI` = 0.4, until which it seems like an exponential relationship. However, zooming in from `HFI` 0 to 0.8, we see that the confidence bands don't intersect at all with the red line, which is the expected value given no relationship. This relationship appears non-linear and possibly exponential, where the greatest intensity of observed red foxes occurs at high `HFI`s. This relationship was expected, as our dataset is not exhaustive but rather is crowdsourced, and naturally foxes are more likely to be observed by humans in spaces with higher `HFI`s.
 
-In Figure 8, we see that there seems to be non-linear relationship between forest cover and number of red foxes observed. The observance increases with increase in forest cover at intermediate coverage and then it decreases. We also see that there is non-linear relationship with elevation. The relationship appears to be non-linear as the graph is showing different results for different elevation and we cannot see any type of specific pattern from the same. In case of distance to water, we don't observe a significant deviation in observed red foxes than expected by chance, indicating that it is not a useful covariate to model.  
+In Figure 8, we see that there seems to be non-linear relationship between `Forest Cover` and number of red foxes observed. The observance increases with increase in `Forest Cover` at intermediate coverage and then it decreases. We also see that there is non-linear relationship with `Elevation`. The relationship appears to be non-linear as the graph is showing different results for different `Elevation` and we cannot see any type of specific pattern from the same. In case of `Distance to Water`, we don't observe a significant deviation in observed red foxes than expected by chance, indicating that it is not a useful covariate to model.  
 
 
 ### Fit models for the covariets
@@ -361,12 +312,23 @@ fitElev
 fitWater <- ppm(parks_ppp ~ Dist_Water, data=DATA)
 fitWater
 ```
-We have fitted 6 models and we came to observe that HFI, exp(HFI), Forest, I(Forest^2) and elevation seems to be highly significant however Distance to Water seems to be in-significant for the occurrence of red foxes in the BC area.
+
+We have fitted 6 models and we came to observe that `HFI`, exp(HFI), `Forest Cover`, I(Forest^2) and `Elevation` seems to be highly significant however `Distance to Water` seems to be in-significant for the occurrence of red foxes in the BC area. When we check the AIC values and it is seen that `HFI` and `HFI`(exp) has lower values so we can consider these models to be a better fit.
 
 ```{r}
-AIC(fitHFI); AIC(fitHFIexp); AIC(fit); AIC(fitElev); AIC(fitWater)
-```
 
+HFIAIC <- AIC(fitHFI)
+HFIexpAIC <- AIC(fitHFIexp)
+ForestAIC <- AIC(fit)
+ElevAIC <- AIC(fitElev)
+WaterAIC <- AIC(fitWater)
+
+# Create table
+table <- data.frame(Model = c("HFI", "HFI(Exp)", "Forest Cover", "Elevation", "Dist to Water"), AIC = c(HFIAIC, HFIexpAIC, ForestAIC, ElevAIC, WaterAIC))
+
+# Print table
+print(table)
+```
 
 
 ```{r eval=FALSE}
@@ -381,8 +343,8 @@ plot(parks_ppp,
      cols = "white",
      add = TRUE)
 
-#Plot the model predictions for Forest & overlay the red fox locations
-plot(fit, se = F, superimpose = F, main="Fitted Model for Forest")
+#Plot the model predictions for Forest Cover & overlay the red fox locations
+plot(fit, se = F, superimpose = F, main="Fitted Model for Forest Cover")
 plot(parks_ppp,
      pch = 16,
      cex = 0.6,
@@ -404,34 +366,33 @@ plot(parks_ppp,
      cex = 0.6,
      cols = "white",
      add = TRUE)
-#Does not look like a good fit for all points in forest and also not easy to interpret. Here Elevation is significant but Dist to Water is not significant. 
+#Does not look like a good fit for all points in forest and also not easy to interpret. Here Elevation is significant but Distance to Water is not significant. 
 ```
 
 
 
 ```{r}
-### 2. Checking collinearity
+### 2. Checking correlation
 cor.im(DATA$Forest, DATA$HFI, DATA$Elevation, DATA$Dist_Water, use = "complete.obs")
 ```
 
-We see that no covariate is strongly collinear with another, and so we can move on without taking so into account and treating the covariates as independent.
+We see that no covariate is strongly correlated with another, and so we can move on without taking so into account and treating the covariates as independent.
 
 ## Model Fitting
 
-From our assessment on individual covariates, we see that there is a non-linear relationship between the covariates and the red fox point data. Based on this knowledge, we move forward to fit the first base model with covariates that are showing strong trends with red fox data and also of research interest. For this purpose, the selected covariates are 1. Elevation 2. HFI and 3. Forest Cover. 
+From our assessment on individual covariates, we see that there is a non-linear relationship between the covariates and the red fox point data. Based on this knowledge, we move forward to fit the first base model with covariates that are showing strong trends with red fox data and also of research interest. For this purpose, the selected covariates are 1. `Elevation` 2. `HFI` and 3. `Forest Cover`. 
 
 We built the model with the linear and quadratic terms of covariates $Elevation$, $HFI$ and $Forest$. We call this model as $model 1$.
 
 ```{r fig.cap="Model 1 Details"}
 #Fit the PPP model
 fit_red <- ppm(parks_ppp ~ Forest + I(Forest^2) + HFI + I(HFI^2)+ Elevation + I(Elevation^2), data = DATA)
-
 fit_red
 ```
 
-The results indicate that covariates $HFI$ and $Elevation$ show strong significance and explain occurrence of red fox data in both linear and quadratic terms. Though forest cover showed non-linear relationship in second moment analysis, in this combined model with other covariates, its not significant.
+The results indicate that covariates $HFI$ and $Elevation$ show strong significance and explain occurrence of red fox data in both linear and quadratic terms. Though `Forest Cover` showed non-linear relationship in second moment analysis, in this combined model with other covariates, its not significant.
 
-As our next step, we drop the covariate $Forest$ from the model and build the next model with $HFI$ and $Elevation$ with linear and quadratic terms. We call this as $Model 2$.
+As our next step, we drop the covariate $Forest$ from the model and build the next model with $HFI$ and $`Elevation`$ with linear and quadratic terms. We call this as $Model 2$.
 
 
 ```{r, fig.cap="Model 2"}
@@ -440,7 +401,7 @@ fit_red2 <- ppm(parks_ppp ~ HFI + I(HFI^2)+ Elevation + I(Elevation^2), data = D
 fit_red2
 ```
 
-Based on the model results, both HFI and Elevation show strong significance and explain occurrence of red fox data in both linear and quadratic terms. For understanding the fit of the model, we plot the model and red fox locations together by overlaying the observed data on the predicted values from the model.
+Based on the model results, both HFI and `Elevation` show strong significance and explain occurrence of red fox data in both linear and quadratic terms. For understanding the fit of the model, we plot the model and red fox locations together by overlaying the observed data on the predicted values from the model.
 
 ```{r}
 #Plot the model predictions
@@ -488,7 +449,7 @@ With a model that fits the data identified,  we proceed to do a thorough validat
 
 First, we start with a simple test evaluating the AIC score of model 1 and 2. The AIC scores are 10401.62 and 10403.57 respectively. We can see that there is not a huge difference in terms of this score between the models. A likelihood ratio test also suggests that there is no evidence of significant difference in performance between the two models.
 
-As we are interested in a parsimonious model, we prefer $Model 2$ out of the two options, as it has only two covariates: elevation and HFI. 
+As we are interested in a parsimonious model, we prefer $Model 2$ out of the two options, as it has only two covariates: `Elevation` and `HFI`. 
 
 ```{r}
 #AIC(fitHFI); AIC(fitHFIexp); AIC(fitHFIquad); AIC(fit_for); AIC(fit_red)
@@ -552,7 +513,7 @@ plot(par_res_HFI,
      xlab = "HFI")
 ```
 
-Based on the plot for HFI, we see that the model is capturing the patterns in the data really well. Looking at the plot for Elevation, the model is capturing the patterns in the data very well except for higher elevation. 
+Based on the plot for `HFI`, we see that the model is capturing the patterns in the data really well. Looking at the plot for `Elevation`, the model is capturing the patterns in the data very well except for higher `Elevation`. 
 
 We compute the intensity of a fitted point process model as a function of one of its covariates to look at the influence of the individual covariates.
 
@@ -571,7 +532,7 @@ hfi_effect <- effectfun(fit_red2, "HFI", Elevation = E_elev, se.fit = T)
 
 #Side by side plotting
 par(mfrow = c(1,2))
-#Plot the elevation effect 
+#Plot the `Elevation` effect 
 plot(elev_effect,
      legend = FALSE,
      main = "Elevational effect at mean HFI")
@@ -582,9 +543,9 @@ plot(hfi_effect,
      main = "Effect of HFI at mean elevation")
 ```
 
-Based on the plot, we can see that intensity of the model can be described well as a function of elevation and HFI.
+Based on the plot, we can see that intensity of the model can be described well as a function of `Elevation` and `HFI`.
 
-Though the `Model 2` evaluation so far is very promising, we see that the intensity or occurrence of red fox at higher elevation is not captured well. We try to improve it by adding a higher order polynomial for elevation but it results in convergence error. So, we compare with a non parametric alternative using an additive modelling framework (GAMs) as it allows more flexibility. We call this as our `Model 3`.
+Though the `Model 2` evaluation so far is very promising, we see that the intensity or occurrence of red fox at higher `Elevation` is not captured well. We try to improve it by adding a higher order polynomial for `Elevation` but it results in convergence error. So, we compare with a non parametric alternative using an additive modelling framework (GAMs) as it allows more flexibility. We call this as our `Model 3`.
 
 ```{r}
 library(splines)
@@ -623,7 +584,7 @@ plot(par_res_HFI,
      xlab = "HFI")
 ```
 
-Additionally, the partial residuals as well show that the `Model 2` has captured the underlying data better and even in the higher elevation area, the output from `Model 3` is still not convincing.
+Additionally, the partial residuals as well show that the `Model 2` has captured the underlying data better and even in the higher `Elevation` area, the output from `Model 3` is still not convincing.
 
 ```{r}
 #Likelihood ratio test
@@ -636,21 +597,79 @@ Based on the results above, we conclude `Model 2` as the winner to describe the 
 
 First look at the occurrence data of red fox on BC map showed that the species is spread across the province and look clustered in some places. First moments analysis clearly showed that the intensity of data is inhomogeneous and there are a few hot spots in the province. Second moment analysis using Ripley's K-function showed there is some clustering of the data but the pair correlation which focuses on contribution of all inter-point distances confirmed that there is no significant clustering in data past 23km. Based on this, we conclude there is very little or no clustering in the occurrences of red fox.
 
-Analysis of covariates HFI, forest cover, elevation with this data shows the variables have a non-linear relationship with the data. The fourth covariate available to us is distance to water and this does not show promising relationship in our initial assessment plots. Individual models with all the covariates is created and studied. Distance to water is not significant and so is excluded from further analysis. We also discovered that there is no significant correlation between the variables and this allows us to combine them in further modeling the given red fox data.
+Analysis of covariates `HFI`, `Forest Cover`, `Elevation` with this data shows the variables have a non-linear relationship with the data. The fourth covariate available to us is `Distance to Water` and this does not show promising relationship in our initial assessment plots. Individual models with all the covariates is created and studied. `Distance to Water` is not significant and so is excluded from further analysis. We also discovered that there is no significant correlation between the variables and this allows us to combine them in further modeling the given red fox data.
 
-First combined model (Model 1) with forest, elevation and HFI is fitted with linear and quadratic terms and we discovered that forest is not a significant predictor. So, we removed forest and fitted the next model (Model 2) with elevation and HFI including linear and quadratic terms. For a good comparison, Model 3 is also fit which is a GAMs model. AIC scores from the three models are tabulated below. 
+First combined model (Model 1) with `Forest Cover`, `Elevation` and `HFI` is fitted with linear and quadratic terms and we discovered that `Forest Cover` is not a significant predictor. So, we removed `Forest Cover` and fitted the next model (Model 2) with `Elevation` and `HFI` including linear and quadratic terms. For a good comparison, Model 3 is also fit which is a GAMs model. AIC scores from the three models are tabulated below. 
 
 |           | **3 covariates (Model 1)**   | **2 covariates (Model 2)** | **GAM w 2 covariates (Model 3)**   |
 |-----------|----------|-----------|----------|
 | **AIC** | 10401.62 |  10403.57  |  10408.13 |
 
-As seen above, Model 2 has comparatively a lower AIC score and a quadrat test between all three models showed that not any one of the models is superior. We decide to select a parsimonious model and Model 2 is selected. The residual, partial residual and covariate effect plots support the goodness of fit for this model. They also reveal that there are opportunities for improvements with this model especially at high and low elevation points.
+As seen above, Model 2 has comparatively a lower AIC score and a quadrat test between all three models showed that not any one of the models is superior. We decide to select a parsimonious model and Model 2 is selected. The residual, partial residual and covariate effect plots support the goodness of fit for this model. They also reveal that there are opportunities for improvements with this model especially at high and low `Elevation` points.
 
-Our research questions were 1) Are red fox occurrence present near human habitat and we see from the model that the answer is 'yes'. 2) Do they not like the forest cover? We are unable to conclude they do not and there is not significant relationship between red fox and this covariate. We also found there is significant relationship with elevation. 
+Our research questions were 1) Are red fox occurrence present near human habitat and we see from the model that the answer is 'yes'. 2) Do they not like the `Forest Cover`? We are unable to conclude they do not and there is not significant relationship between red fox and this covariate. We also found there is significant relationship with `Elevation`. 
 
-There are some interesting challenges and insights gathered during the analysis and modeling process and we would like to share to help with future research. The Rho plots and standard residuals plot for this data error out due to NAs in the data. The model 2 which is the selected model does not converge if higher order of elevation variables are included. GAMs model is used as a comparison here and only limited tuning is performed in the interest of time. An in depth tuning in our opinion could help build a second model for this data.
+There are some interesting challenges and insights gathered during the analysis and modeling process and we would like to share to help with future research. The Rho plots and standard residuals plot for this data error out due to NAs in the data. The model 2 which is the selected model does not converge if higher order of `Elevation` variables are included. GAMs model is used as a comparison here and only limited tuning is performed in the interest of time. An in depth tuning in our opinion could help build a second model for this data.
+
+# Appendix
+
+### Plotting red fox occurances with covariates
+
+```{r, warning=F, fig.cap="Red Fox plotting in various covariets"}
+par(mfrow=c(2,2))
+
+plot(DATA$HFI, box = F, par(cex.main = 1), main = "HFI")
+plot(parks_ppp,
+pch = 16,
+cex = 0.6,
+cols = "white",
+add = TRUE)
+plot(parks_ppp,
+pch = 16,
+cex = 0.5,
+cols = "black",
+add = TRUE)
+
+plot(DATA$Forest, box = F, par(cex.main = 1), main = "Forest Cover")
+plot(parks_ppp,
+pch = 16,
+cex = 0.6,
+cols = "white",
+add = TRUE)
+plot(parks_ppp,
+pch = 16,
+cex = 0.5,
+cols = "black",
+add = TRUE)
+
+plot(DATA$Elevation, box = F,  main = "Elevation")
+plot(parks_ppp,
+pch = 16,
+cex = 0.6,
+cols = "white",
+add = TRUE)
+plot(parks_ppp,
+pch = 16,
+cex = 0.5,
+cols = "black",
+add = TRUE)
+
+plot(DATA$Dist_Water, box = F, main = "Distance from Water")
+plot(parks_ppp,
+pch = 16,
+cex = 0.6,
+cols = "white",
+add = TRUE)
+plot(parks_ppp,
+pch = 16,
+cex = 0.5,
+cols = "black",
+add = TRUE)
+```
+
 
 # References: Include references to all necessary literature.
 
 1. Data: GBIF.org (09 April 2023) GBIF Occurrence Download  https://doi.org/10.15468/dl.p6tsaa
 2. Research topics: https://cwf-fcf.org/en/resources/encyclopedias/fauna/mammals/red-fox.html
+3. https://www.gbif.org/species/5219243
