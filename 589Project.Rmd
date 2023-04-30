@@ -293,7 +293,7 @@ In Figure 8, we see that there seems to be non-linear relationship between `Fore
 
 ### Fit models for the covariets
 
-```{r, warning=F, eval=FALSE}
+```{r, warning=F}
 #Fit the PPP model for HFI
 fitHFI <- ppm(parks_ppp ~ HFI,data=DATA)
 fitHFI
@@ -316,6 +316,7 @@ fitWater
 We have fitted 6 models and we came to observe that `HFI`, exp(HFI), `Forest Cover`, I(Forest^2) and `Elevation` seems to be highly significant however `Distance to Water` seems to be in-significant for the occurrence of red foxes in the BC area. When we check the AIC values and it is seen that `HFI` and `HFI`(exp) has lower values so we can consider these models to be a better fit.
 
 ```{r}
+
 HFIAIC <- AIC(fitHFI)
 HFIexpAIC <- AIC(fitHFIexp)
 ForestAIC <- AIC(fit)
